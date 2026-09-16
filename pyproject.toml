@@ -1,0 +1,21 @@
+[project]
+name = "perceptrons"
+version = "0.1.0"
+description = "TP3 SIA - Simple and multilayer perceptrons"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/perceptrons"]
