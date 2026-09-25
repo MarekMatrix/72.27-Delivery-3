@@ -126,7 +126,7 @@ in the repository.
 ```
 src/            # source, importable as a package
 notebooks/      # exploration only — nothing here is a deliverable
-data/           # raw data, gitignored; never commit datasets
+data/           # course datasets, committed; generated data is not
 results/        # generated figures and outputs, gitignored
 docs/           # report source and slides
 tests/

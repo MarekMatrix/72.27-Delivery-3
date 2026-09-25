@@ -7,9 +7,18 @@ venv/
 build/
 dist/
 
-# Project data & generated artefacts (never commit these)
+# Course materials: committed deliberately, so everyone works from the same
+# files without re-downloading them. Anything else dropped into data/ stays out.
 data/*
 !data/.gitkeep
+!data/fraud_dataset.csv
+!data/fraud_dataset_documentation.pdf
+!data/digits.csv
+!data/digits_test.csv
+!data/more_digits.csv
+!data/digit_dataset_loader.py
+
+# Generated artefacts (never commit these)
 results/*
 !results/.gitkeep
 

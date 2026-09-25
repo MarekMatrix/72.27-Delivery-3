@@ -56,7 +56,7 @@ make install   # uv sync: creates .venv with numpy, matplotlib, pytest
 make test      # runs the validation exercises in tests/
 ```
 
-Unpack the course materials into `data/`, keeping the original filenames:
+The course materials are committed in `data/`, under their original filenames, so `make install` is all you need — there is nothing to download:
 
 | File | Used by |
 |---|---|
@@ -67,7 +67,7 @@ Unpack the course materials into `data/`, keeping the original filenames:
 | `fraud_dataset_documentation.pdf` | column documentation for Exercise 1 |
 | `digit_dataset_loader.py` | the course's reference loader for the digit CSVs; reference only, `data.py` is ours |
 
-The folder is gitignored, so nothing in it is committed and each of us downloads it separately.
+These files are committed deliberately, as an exception to the rule below about generated artefacts: they are inputs, they never change, and having them in the repository means everyone trains on byte-identical data. Keep the names as they are — `data.py` and the report both refer to them. Anything else you drop into `data/` stays gitignored.
 
 Experiments will run through `cli.py`, which is not implemented yet (area A6).
 
@@ -90,7 +90,7 @@ Experiments will run through `cli.py`, which is not implemented yet (area A6).
 │   └── cli.py            command-line entry point                        A6
 ├── tests/                validation exercises and per-module tests
 ├── notebooks/            exploration only; never imported by src/
-├── data/                 datasets and their documentation (gitignored)
+├── data/                 course datasets and their documentation (committed)
 ├── results/              run outputs and figures (gitignored)
 ├── docs/                 report and slides
 ├── pyproject.toml        dependencies, managed with uv (uv.lock is committed)
@@ -312,7 +312,7 @@ git push -u origin feat/mlp-backprop   # add --force-with-lease if the branch wa
 - `make test` passes before merging.
 - Keep pull requests small and within your own area's files. If you have to change another area's module, its owner reviews.
 - Commit messages start with `feat:`, `fix:`, `refactor:`, `docs:`, `chore:` or `test:`, use the imperative mood, keep the subject under about 72 characters, and cover one logical change.
-- Nothing in `data/` or `results/` is ever committed.
+- Nothing in `results/` is ever committed. In `data/`, only the original course materials are; anything else you put there stays ignored.
 
 ## Milestones
 
