@@ -27,7 +27,6 @@ The labels are used in the work areas below.
   **1G-a** which evaluation metrics, and why?
   **1G-b** how is the dataset handled, and how is the best training set chosen?
   **1G-c** best model for the client, plus a recommended fraud-detection threshold.
-- Optional: ReLU in the non-linear perceptron (practical); features to build or discard (theory); calibration (theory).
 - The assignment stresses exploring `fraud_dataset.csv` before modelling: column documentation, value ranges, composition, cleanliness.
 
 **Exercise 2**
@@ -41,9 +40,16 @@ The labels are used in the work areas below.
 - **3-b** techniques used to improve on Exercise 2.
 - **3-c** other factors behind the change in performance.
 
-**Optional for Exercises 2 and 3:** robustness to noise (e.g. Gaussian) on the test set; interpretability through attribution methods.
+### Optional parts: deferred
 
-Optional parts start only once every required part is done; the assignment is explicit about this.
+We are planning for the obligatory exercises only. The assignment is explicit that optional parts
+start once every required part is done, so they are out of scope unless a team finishes early.
+Recorded here so nobody has to re-read the enunciado to find them again:
+
+- **Exercise 1:** ReLU in the non-linear perceptron (practical); features to build or discard
+  (theory); calibration (theory).
+- **Exercises 2 and 3:** robustness to noise (e.g. Gaussian) on the test set; interpretability
+  through attribution methods.
 
 The assignment also recommends matrix operations, progress reporting, a stored and extensible configuration, saving and loading models together with their configuration, and keeping experiment runs separate from analysis. The structure below is built around those.
 
@@ -69,25 +75,25 @@ The course materials are committed in `data/`, under their original filenames, s
 
 These files are committed deliberately, as an exception to the rule below about generated artefacts: they are inputs, they never change, and having them in the repository means everyone trains on byte-identical data. Keep the names as they are — `data.py` and the report both refer to them. Anything else you drop into `data/` stays gitignored.
 
-Experiments will run through `cli.py`, which is not implemented yet (area A6).
+Experiments will run through `cli.py`, which is not implemented yet (T3 owns it).
 
 ## Repository structure
 
 ```
 .
 ├── src/perceptrons/
-│   ├── activations.py    activation functions and derivatives            A1
-│   ├── losses.py         loss functions and their gradients              A1
-│   ├── simple.py         simple perceptron: step, linear, non-linear     A1
-│   ├── multilayer.py     multilayer perceptron                           A2
-│   ├── optimizers.py     weight update rules                             A3
-│   ├── training.py       epochs, shuffling, batching                     A3
-│   ├── data.py           loading, scaling, splitting                     A4
-│   ├── metrics.py        evaluation metrics                              A5
-│   ├── plots.py          report figures, built from results/ only        A5
-│   ├── config.py         experiment configuration                        A6
-│   ├── experiment.py     runs and records experiments                    A6
-│   └── cli.py            command-line entry point                        A6
+│   ├── activations.py    activation functions and derivatives            T1
+│   ├── losses.py         loss functions and their gradients              T1
+│   ├── simple.py         simple perceptron: step, linear, non-linear     T1
+│   ├── multilayer.py     multilayer perceptron                           T2
+│   ├── optimizers.py     weight update rules                             T2
+│   ├── training.py       epochs, shuffling, batching                     T2
+│   ├── data.py           loading, scaling, splitting                     T1
+│   ├── metrics.py        evaluation metrics                              T1
+│   ├── plots.py          report figures, built from results/ only        T3
+│   ├── config.py         experiment configuration                        T3
+│   ├── experiment.py     runs and records experiments                    T3
+│   └── cli.py            command-line entry point                        T3
 ├── tests/                validation exercises and per-module tests
 ├── notebooks/            exploration only; never imported by src/
 ├── data/                 course datasets and their documentation (committed)
@@ -113,22 +119,22 @@ flowchart TD
     TESTS["tests/<br/>validation exercises"]
 
     subgraph RUN["Run: writes to results/"]
-        CLI["cli.py (A6)<br/>choose exercise and config"]
-        CFG["config.py (A6)<br/>hyperparameters"]
-        DATA["data.py (A4)<br/>load, scale, split"]
-        EXP["experiment.py (A6)<br/>orchestrate, report progress, save and load"]
-        TRAIN["training.py (A3)<br/>epochs, shuffling, batches"]
-        MODEL["simple.py (A1)<br/>multilayer.py (A2)"]
-        ACT["activations.py (A1)"]
-        LOSS["losses.py (A1)"]
-        OPT["optimizers.py (A3)"]
-        MET["metrics.py (A5)"]
+        CLI["cli.py (T3)<br/>choose exercise and config"]
+        CFG["config.py (T3)<br/>hyperparameters"]
+        DATA["data.py (T1)<br/>load, scale, split"]
+        EXP["experiment.py (T3)<br/>orchestrate, report progress, save and load"]
+        TRAIN["training.py (T2)<br/>epochs, shuffling, batches"]
+        MODEL["simple.py (T1)<br/>multilayer.py (T2)"]
+        ACT["activations.py (T1)"]
+        LOSS["losses.py (T1)"]
+        OPT["optimizers.py (T2)"]
+        MET["metrics.py (T1)"]
     end
 
     RES[("results/run-id/<br/>config, per-epoch history, timing, weights")]
 
     subgraph ANALYSE["Analyse: reads results/ only"]
-        PLOT["plots.py (A5)"]
+        PLOT["plots.py (T3)"]
     end
 
     DOCS["docs/<br/>report and slides"]
@@ -156,107 +162,137 @@ An experiment starts from `cli.py` with a config. `experiment.py` gets the data 
 
 ## Work areas
 
-Each member owns one area: a set of modules in phase 1 (implementation) and the report questions closest to those modules in phase 2 (experiments). Areas that are heavy on implementation carry lighter experiment work, and the other way round.
+Six people, three pairs, one obligatory exercise each. A pair owns its exercise end to end: the
+report questions for it, the experiments behind them, and a slice of the shared code.
 
-| Area | Owner | Modules | Phase 2 questions |
-|---|---|---|---|
-| A1: Simple perceptron and neuron maths | _TBD_ | `activations.py`, `losses.py`, `simple.py` | 1L-a, 1L-b, 1L-c; optional ReLU |
-| A2: Multilayer perceptron | _TBD_ | `multilayer.py` | 2-b architecture; optional interpretability |
-| A3: Optimization and training loop | _TBD_ | `optimizers.py`, `training.py` | 2-b learning rate and optimizers |
-| A4: Data | _TBD_ | `data.py`, exploration notebooks | 1G-b, 3-c; optional features |
-| A5: Evaluation and figures | _TBD_ | `metrics.py`, `plots.py` | 1G-a, 1G-c, 2-a; optional calibration |
-| A6: Experiment infrastructure | _TBD_ | `config.py`, `experiment.py`, `cli.py` | 3-a, 3-b; optional noise robustness |
+| Team | Exercise | Owners | Modules owned | Report questions |
+|---|---|---|---|---|
+| T1 | Exercise 1 — fraud probability | _TBD_, _TBD_ | `activations.py`, `losses.py`, `simple.py`, `data.py`, `metrics.py` | 1L-a, 1L-b, 1L-c, 1G-a, 1G-b, 1G-c |
+| T2 | Exercise 2 — digit classification | _TBD_, _TBD_ | `multilayer.py`, `optimizers.py`, `training.py` | 2-a, 2-b |
+| T3 | Exercise 3 — digits at ≥ 98% | _TBD_, _TBD_ | `config.py`, `experiment.py`, `cli.py`, `plots.py` | 3-a, 3-b, 3-c |
 
-Every area also owns the tests for its modules.
+Each team owns the tests for its own modules, including the validation exercises that cover them:
+`tests/test_simple.py` and `tests/test_data.py` are T1's, `tests/test_multilayer.py` and
+`tests/test_optimizers.py` are T2's, `tests/test_experiment.py` is T3's.
 
-### A1: Simple perceptron and neuron maths
+### What "owns" means here
 
-Owns `activations.py`, `losses.py`, `simple.py`, `tests/test_simple.py`.
+Every exercise needs more modules than its team owns, so ownership is about the interface, not
+about who is allowed to type in the file. The owner decides the module's signatures, reviews every
+change to it, and is the person to ask before adding to it. Anyone may open a pull request against
+a module they do not own — the owner reviews it.
 
-Phase 1 is done when:
+Three modules are used by all three exercises and will attract changes from outside their team.
+Expect that rather than fighting it:
 
-- the step variant learns AND, the linear variant fits `y = x`, the non-linear variant fits `y = tanh(x)`, and the step variant fails on XOR, all as passing tests;
-- activations and losses, with their derivatives and gradients, are merged into `develop` early, because A2 and A3 build on them.
+- `data.py` (T1) — T1 needs it first, for the Exercise 1 generalization study, but T2 and T3 load
+  the digits through it too.
+- `metrics.py` (T1) — the Exercise 1 metric choice is the hard one and has to be justified in the
+  report, so T1 owns it; T2 adds the digit metrics it needs for 2-a.
+- `plots.py` (T3) — it reads the results record and nothing else, and that format is T3's, so T3
+  owns it; T1 and T2 add the figures for their own report sections.
 
-Phase 2: 1L-a, 1L-b, 1L-c; optional ReLU. The answer to 1L-c decides which perceptron A4 and A5 use for the generalization study.
+### The order things can happen in
 
-### A2: Multilayer perceptron
+The three exercises are not independent and cannot all start at once.
 
-Owns `multilayer.py`, `tests/test_multilayer.py`.
+- **Exercise 1 starts immediately.** T1's modules sit at the bottom of the dependency graph, which
+  is why the neuron maths is theirs.
+- **Exercise 2 is blocked on T1's activations and losses.** T2's first days are the hand
+  calculations of one forward and backward step for `[2, 2, 1]` and `[2, 3, 2, 1]`, which need no
+  code at all, so the block costs nothing if T1 merges those two modules early.
+- **Exercise 3 is Exercise 2 again**, with `more_digits.csv` and better technique, so T3 cannot run
+  its own exercise until T2 has a working MLP and a best-known configuration. T3 therefore builds
+  the experiment infrastructure first, against a dummy model — and that infrastructure is exactly
+  what a search over techniques needs, so none of it is throwaway. How T2's best configuration is
+  handed over is a kickoff decision, not something to improvise later.
 
-Phase 1 is done when:
+If T3 runs out of infrastructure work before T2 has a model, the useful next thing is the Exercise
+3 data work — loading and merging `more_digits.csv`, checking class balance — as a pull request
+into T1's `data.py`.
 
-- one forward and backward step for `[2, 2, 1]` and for `[2, 3, 2, 1]` has been calculated by hand, as the assignment recommends, and a test reproduces the numbers;
+### T1: Exercise 1 — fraud probability
+
+Owns `activations.py`, `losses.py`, `simple.py`, `data.py`, `metrics.py`, `tests/test_simple.py`,
+`tests/test_data.py` (to create).
+
+Implementation is done when:
+
+- the step variant learns AND, the linear variant fits `y = x`, the non-linear variant fits
+  `y = tanh(x)`, and the step variant fails on XOR, all as passing tests;
+- activations and losses, with their derivatives and gradients, are merged into `develop` early —
+  T2 and T3 are blocked on them;
+- all four CSVs load into arrays with the agreed shapes and target encoding, with the digit loaders
+  merged early for T2 even though T1 does not use them;
+- scaling and splitting utilities exist for the Exercise 1 generalization study and for tuning on
+  `digits.csv`, with `digits_test.csv` kept out of all tuning;
+- every metric matches values computed by hand on small made-up predictions.
+
+Experiments:
+
+- a notebook explores `fraud_dataset.csv` along the assignment's questions — column documentation,
+  value ranges, composition, cleanliness — before any modelling;
+- the learning study uses every sample and compares the linear and non-linear variants: 1L-a,
+  1L-b, 1L-c;
+- the generalization study runs on whichever perceptron 1L-c picked: 1G-a, 1G-b, 1G-c, ending in a
+  recommended fraud-detection threshold for CompanyX.
+
+### T2: Exercise 2 — digit classification
+
+Owns `multilayer.py`, `optimizers.py`, `training.py`, `tests/test_multilayer.py`,
+`tests/test_optimizers.py` (to create).
+
+Implementation is done when:
+
+- one forward and backward step for `[2, 2, 1]` and for `[2, 3, 2, 1]` has been calculated by hand,
+  as the assignment recommends, and a test reproduces the numbers;
 - XOR is learned with both architectures;
-- forward and backward passes are matrix operations, not per-neuron loops.
+- forward and backward passes are matrix operations, not per-neuron loops — the digits are 28 × 28,
+  so a per-neuron loop over 784 inputs will not finish in usable time;
+- plain gradient descent and every alternative optimizer we compare minimize a function whose
+  minimum is known in advance (e.g. a one-dimensional quadratic), with no model involved;
+- the training loop handles epochs, shuffling and batch size, and hands per-epoch loss and timing
+  to `experiment.py`.
 
-The hand calculations can start on day one; running code needs A1's activations.
+Experiments: 2-a, and the 2-b variants — learning rate, architecture and optimization method at
+minimum. The best configuration found here is what T3 starts from, so record it in a form T3 can
+load rather than in the report text only.
 
-Phase 2: 2-b architecture variants; optional interpretability.
+### T3: Exercise 3 — digits at ≥ 98%
 
-### A3: Optimization and training loop
+Owns `config.py`, `experiment.py`, `cli.py`, `plots.py`, `tests/test_experiment.py` (to create).
 
-Owns `optimizers.py`, `training.py`, `tests/test_optimizers.py` (to create).
-
-Phase 1 is done when:
-
-- plain gradient descent and each alternative we compare in Exercise 2 minimize a function whose minimum is known in advance (e.g. a one-dimensional quadratic), with no model involved;
-- the training loop handles epochs, shuffling and batch size, and hands per-epoch loss and timing to `experiment.py`.
-
-Phase 2: 2-b learning-rate and optimizer variants.
-
-### A4: Data
-
-Owns `data.py`, the exploration notebooks, `tests/test_data.py` (to create).
-
-Phase 1 is done when:
-
-- all four CSVs load into arrays with the agreed shapes and target encoding;
-- a notebook explores `fraud_dataset.csv` along the assignment's questions, and the digit datasets (class balance, value ranges);
-- scaling and splitting utilities exist for the Exercise 1 generalization study and for tuning on `digits.csv`, with `digits_test.csv` kept out of all tuning.
-
-Phase 2: 1G-b, 3-c; optional feature construction and removal.
-
-### A5: Evaluation and figures
-
-Owns `metrics.py`, `plots.py`, `tests/test_metrics.py` (to create).
-
-Phase 1 is done when:
-
-- every metric matches values computed by hand on small made-up predictions;
-- plotting helpers produce figures with labelled axes and units from a results record. Use a hand-written fake record until A6's format is merged.
-
-Phase 2: 1G-a, 1G-c, 2-a; optional calibration.
-
-### A6: Experiment infrastructure
-
-Owns `config.py`, `experiment.py`, `cli.py`, `tests/test_experiment.py` (to create).
-
-Phase 1 is done when:
+Implementation is done when:
 
 - a config written to disk and read back is unchanged;
-- a run writes its config, per-epoch history, timing and weights to `results/<run-id>/`, and reports progress while training;
+- a run writes its config, per-epoch history, timing and weights to `results/<run-id>/`, and
+  reports progress while training;
 - a saved model loads with its config and continues training;
-- the CLI runs any exercise from a config file.
+- the CLI runs any exercise from a config file;
+- plotting helpers produce figures with labelled axes and units from a results record. Use a
+  hand-written fake record until the format is merged.
 
-Build against a dummy model until A1 and A2 merge.
+Build against a dummy model until T1's and T2's models merge.
 
-Phase 2: 3-a, 3-b, drawing on A2 and A3; optional noise robustness.
+Experiments: starting from T2's best configuration and adding `more_digits.csv`, reach the client's
+98% target: 3-a, 3-b, 3-c. 3-c asks what changed other than the techniques, which is mostly a
+question about the data — work that one with T1.
 
 ## Before anyone branches: agree on the contracts
 
-Parallel work only holds if the boundaries between areas are fixed first. Settle these at a kickoff and record each decision in the docstring of the module that provides it.
+Parallel work only holds if the boundaries between teams are fixed first. Settle these at a kickoff and record each decision in the docstring of the module that provides it.
 
 | Contract | Provided by → used by | To decide |
 |---|---|---|
-| Array shapes | A4 → everyone | Shapes of input and output matrices; how digit labels are encoded |
-| Activation | A1 → A2 | How a function and its derivative are exposed |
-| Loss | A1 → A3 | Loss value, and its gradient with respect to the network output |
-| Model | A1, A2 → A3, A6 | Prediction; gradients for every parameter; access to parameters for updating and saving |
-| Optimizer | A3 → A6 | How parameters and gradients go in; where optimizer state (e.g. running averages) lives |
-| Epoch record | A3 → A6 | What the training loop reports after each epoch |
-| Results record | A6 → A5 | What a run writes to `results/`, and in which format |
-| Config fields | everyone → A6 | Each area lists the hyperparameters it needs |
+| Array shapes | T1 → everyone | Shapes of input and output matrices; how digit labels are encoded |
+| Activation | T1 → T2 | How a function and its derivative are exposed |
+| Loss | T1 → T2 | Loss value, and its gradient with respect to the network output |
+| Model | T1, T2 → T2, T3 | Prediction; gradients for every parameter; access to parameters for updating and saving |
+| Optimizer | T2 → T3 | How parameters and gradients go in; where optimizer state (e.g. running averages) lives |
+| Epoch record | T2 → T3 | What the training loop reports after each epoch |
+| Results record | T3 → everyone | What a run writes to `results/`, and in which format |
+| Config fields | everyone → T3 | Each team lists the hyperparameters its exercise needs |
+| Best Ex2 configuration | T2 → T3 | How Exercise 3 picks up where Exercise 2 stopped |
 | Randomness | everyone | How seeds are set so runs are reproducible |
 
 These are design questions for the whole group rather than one owner, since everyone defends them orally:
@@ -308,16 +344,16 @@ git push -u origin feat/mlp-backprop   # add --force-with-lease if the branch wa
 ### Rules
 
 - Rebase only branches that you alone push to. On a branch shared with someone, merge `develop` into it instead.
-- Every pull request is reviewed by someone from a **different** area. We all defend the whole project orally, so review is also how everyone learns the other areas.
+- Every pull request is reviewed by someone from a **different** team. We all defend the whole project orally, so review is also how everyone learns the other two exercises.
 - `make test` passes before merging.
-- Keep pull requests small and within your own area's files. If you have to change another area's module, its owner reviews.
+- Keep pull requests small and within your own team's files. If you have to change another team's module, its owner reviews.
 - Commit messages start with `feat:`, `fix:`, `refactor:`, `docs:`, `chore:` or `test:`, use the imperative mood, keep the subject under about 72 characters, and cover one logical change.
 - Nothing in `results/` is ever committed. In `data/`, only the original course materials are; anything else you put there stays ignored.
 
 ## Milestones
 
-1. **Kickoff:** owners assigned, contracts and design questions settled, `develop` created.
-2. **Foundations:** A1's activations and losses, A4's loaders and A6's config merged into `develop` as small, early pull requests, since everyone else depends on them.
+1. **Kickoff:** pairs formed, contracts and design questions settled, `develop` created.
+2. **Foundations:** T1's activations, losses and loaders and T3's config merged into `develop` as small, early pull requests, since the other teams are blocked on them.
 3. **Validation passes:** every test passes on `develop`; merge `develop` into `main`.
-4. **Experiments:** Exercise 1 (A1, A4, A5) and Exercise 2 (A2, A3, A5) run in parallel. The Exercise 1 generalization study starts once 1L-c has picked a perceptron. Exercise 3 (A6, A4) starts from the best Exercise 2 setup. Merge into `main` after each exercise.
-5. **Report and slides** in `docs/`, then optional parts if time allows. Final state merged into `main`.
+4. **Experiments:** Exercise 1 (T1) and Exercise 2 (T2) run in parallel, on T3's infrastructure as it lands. The Exercise 1 generalization study starts once 1L-c has picked a perceptron. Exercise 3 (T3) starts once T2 has a best configuration to hand over. Merge into `main` after each exercise.
+5. **Report and slides** in `docs/`. Optional parts stay out of scope unless everything else is finished early. Final state merged into `main`.
