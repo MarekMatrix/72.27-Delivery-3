@@ -9,9 +9,9 @@ We implement the simple perceptron (step, linear, non-linear) and the multilayer
 | Part | Problem | Model | Data | Submitted |
 |---|---|---|---|---|
 | Validation | AND; fit `y = x`; fit `y = tanh(x)`; XOR with `[2, 2, 1]` and `[2, 3, 2, 1]` | Simple perceptron (step, linear, non-linear); MLP | Synthetic | No, but they are our tests |
-| Exercise 1 | Probability that an online transaction is fraudulent, with a small "TinyModel" replacing the client's expensive "BigModel" (knowledge distillation) | Simple perceptron, linear vs non-linear | `transactions.csv` | Yes |
+| Exercise 1 | Probability that an online transaction is fraudulent, with a small "TinyModel" replacing the client's expensive "BigModel" (knowledge distillation) | Simple perceptron, linear vs non-linear | `fraud_dataset.csv` | Yes |
 | Exercise 2 | Classify handwritten digits 0–9 | MLP | `digits.csv` for training and tuning; `digits_test.csv` as the production stand-in | Yes |
-| Exercise 3 | Exercise 2 again, reaching accuracy ≥ 98% | MLP | Adds `more_data_digits.csv` | Yes |
+| Exercise 3 | Exercise 2 again, reaching accuracy ≥ 98% | MLP | Adds `more_digits.csv` | Yes |
 
 ### Questions to answer
 
@@ -28,7 +28,7 @@ The labels are used in the work areas below.
   **1G-b** how is the dataset handled, and how is the best training set chosen?
   **1G-c** best model for the client, plus a recommended fraud-detection threshold.
 - Optional: ReLU in the non-linear perceptron (practical); features to build or discard (theory); calibration (theory).
-- The assignment stresses exploring `transactions.csv` before modelling: column documentation, value ranges, composition, cleanliness.
+- The assignment stresses exploring `fraud_dataset.csv` before modelling: column documentation, value ranges, composition, cleanliness.
 
 **Exercise 2**
 
@@ -56,7 +56,18 @@ make install   # uv sync: creates .venv with numpy, matplotlib, pytest
 make test      # runs the validation exercises in tests/
 ```
 
-Put the four datasets from the course materials in `data/`: `transactions.csv`, `digits.csv`, `digits_test.csv`, `more_data_digits.csv`. The folder is gitignored; datasets are never committed.
+Unpack the course materials into `data/`, keeping the original filenames:
+
+| File | Used by |
+|---|---|
+| `fraud_dataset.csv` | Exercise 1 |
+| `digits.csv` | Exercise 2 (training and tuning) |
+| `digits_test.csv` | Exercises 2 and 3 (production stand-in) |
+| `more_digits.csv` | Exercise 3 |
+| `fraud_dataset_documentation.pdf` | column documentation for Exercise 1 |
+| `digit_dataset_loader.py` | the course's reference loader for the digit CSVs; reference only, `data.py` is ours |
+
+The folder is gitignored, so nothing in it is committed and each of us downloads it separately.
 
 Experiments will run through `cli.py`, which is not implemented yet (area A6).
 
@@ -79,7 +90,7 @@ Experiments will run through `cli.py`, which is not implemented yet (area A6).
 │   └── cli.py            command-line entry point                        A6
 ├── tests/                validation exercises and per-module tests
 ├── notebooks/            exploration only; never imported by src/
-├── data/                 datasets (gitignored)
+├── data/                 datasets and their documentation (gitignored)
 ├── results/              run outputs and figures (gitignored)
 ├── docs/                 report and slides
 ├── pyproject.toml        dependencies, managed with uv (uv.lock is committed)
@@ -201,7 +212,7 @@ Owns `data.py`, the exploration notebooks, `tests/test_data.py` (to create).
 Phase 1 is done when:
 
 - all four CSVs load into arrays with the agreed shapes and target encoding;
-- a notebook explores `transactions.csv` along the assignment's questions, and the digit datasets (class balance, value ranges);
+- a notebook explores `fraud_dataset.csv` along the assignment's questions, and the digit datasets (class balance, value ranges);
 - scaling and splitting utilities exist for the Exercise 1 generalization study and for tuning on `digits.csv`, with `digits_test.csv` kept out of all tuning.
 
 Phase 2: 1G-b, 3-c; optional feature construction and removal.
