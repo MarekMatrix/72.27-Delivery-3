@@ -14,17 +14,11 @@ from pathlib import Path
 import numpy as np
 import ast
 
-
 # SHould be possible to have differrent numbers of hidden layers with different sizes for testing
 # Should probably normalize the input
 # SHould not initialize weights with so high weights
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 # Should get the data from the data.py file instead of creating them here (they are already there as well)
-
-
-
-
-
 
 # Temporarily random seed: 
 random_seed = np.random.default_rng(42)
@@ -73,31 +67,27 @@ print(X_test.shape)
 
 image = X_train[:, 0].reshape((28, 28))
 
+hidden_layers = [16, 16]
+
 # Testing plotting of numbers
 #plt.imshow(image, cmap="gray")
 #plt.show()
 
-output_size = 10
+input_size = 784 # Size x[0]
+output_size = 10 # Size y.max
 
-# Weights matrices: 
-def create_initial_weight_matrix(rows: int, cols: int, min_val: int, max_val: int, rnd: np.random.Generator) -> np.ndarray:
-    W = rnd.uniform(min_val, max_val, size=(rows, cols))
-    return W
-
-# First working for one type of setup, then expanding for letting it be sent in as an input. 
-def init_params(rnd: np.random.Generator): # what to write for output?
-    N = X_train.shape[0]
-    M = 16
-    L = 10
-    W1 = create_initial_weight_matrix(M, N, -0.5, 0.5, rnd)
-    W2 = create_initial_weight_matrix(M, M, -0.5, 0.5, rnd)
-    W3 = create_initial_weight_matrix(L, M, -0.5, 0.5, rnd)
+def init_params(layers: list, rnd: np.random.Generator): # what to write for output?
+    # TRY DIFFERENT TYPES OF INITIALIZATION: (random, Xavier...)
+    W = []
+    b = []
     
-    b1 = create_initial_weight_matrix(M, 1, -0.5, 0.5, rnd)
-    b2 = create_initial_weight_matrix(M, 1, -0.5, 0.5, rnd)
-    b3 = create_initial_weight_matrix(L, 1, -0.5, 0.5, rnd)
+    for i in range(len(layers) - 1):
+        cols = layers[i]
+        rows = layers[i + 1]
+        W.append(rnd.uniform(-0.1, 0.1, size=(rows, cols)))
+        b.append(rnd.uniform(-0.1, 0.1, size=(rows, 1)))
     
-    return W1, W2, W3, b1, b2, b3
+    return W, b
 
 # Theta function: 
 # ndarray or array???
@@ -135,63 +125,60 @@ def one_hot(Y:np.arange) -> np.ndarray:
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-def forward_propagation(beta: np.float32, X: np.array, W1: np.array, W2: np.array, W3: np.array, b1: np.array, b2: np.array, b3: np.array) -> np.ndarray:
-    Z1 = W1 @ X + b1
-    A1 = theta(Z1, beta)
-    Z2 = W2 @ A1 + b2
-    A2 = theta(Z2, beta)
-    Z3 = W3 @ A2 + b3
-    O = theta(Z3, beta)
-    return Z1, A1, Z2, A2, Z3, O
+def forward_propagation(beta: np.float32, layers: list, X: np.array, W: np.array, b: np.array) -> np.ndarray:
+    Z = []
+    A = [X]
+    
+    for i in range(len(W)):
+        Z.append(W[i] @ A[i] + b[i])
+        A.append(theta(Z[i], beta))
+    O = A[-1]
+    
+    return Z, A, O
 
-def backward_propagation(beta: np.float32, T: np.array, Z1: np.array, Z2: np.array, Z3: np.array, W1: np.array, W2: np.array, W3: np.array, A1: np.array, A2: np.array, O: np.array) -> np.array:
-    deltaO = (T - O) * dtheta(Z3, beta) # I think the problem might be that the onehot is not correct size? or that all the others are wrong?? 
-    deltaZ2 = W3.T @ deltaO * dtheta(Z2, beta)
-    deltaZ1 = W2.T @ deltaZ2 * dtheta(Z1, beta) # How to make sure I get the sum
-    return deltaO, deltaZ2, deltaZ1
+def backward_propagation(beta: np.float32, Y: np.array, W: np.array, Z: np.array, O: np.array) -> np.array:
+    delta = [None] * len(W)
+    delta[-1] = (Y - O) * dtheta(Z[-1], beta)
+    for i in range(len(W) - 2, -1, -1):
+        delta[i] = W[i + 1].T @ delta[i + 1] * dtheta(Z[i], beta)
+    return delta
 
-def update_weights(eta: np.float32, batch_size: int, X: np.array, A1: np.array, A2: np.array, W1: np.array, W2: np.array, W3: np.array, b1: np.array, b2: np.array, b3: np.array, deltaO: np.array, deltaZ2: np.array, deltaZ1: np.array) -> np.array: 
-    W1 = W1 + eta * deltaZ1 @ X.T / batch_size
-    W2 = W2 + eta * deltaZ2 @ A1.T / batch_size
-    W3 = W3 + eta * deltaO @ A2.T / batch_size
-    b1 = b1 + eta * deltaZ1.sum(axis=1, keepdims=True) / batch_size
-    b2 = b2 + eta * deltaZ2.sum(axis=1, keepdims=True) / batch_size
-    b3 = b3 + eta * deltaO.sum(axis=1, keepdims=True) / batch_size
-    return W1, W2, W3, b1, b2, b3
+def update_weights(eta: np.float32, batch_size: int, W: np.array, b: np.array, A: np.array, delta: np.array) -> np.array: 
+    for i in range(len(W)):
+        W[i] = W[i] + eta * delta[i] @ A[i].T / batch_size
+        b[i] = b[i] + eta * delta[i].sum(axis=1, keepdims=True) / batch_size
+    return W, b
 
 # Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
-def multilayer(beta: np.float32, eta: np.float32, max_epocs: int, function: str, rnd: np.random.Generator):
+def multilayer(beta: np.float32, eta: np.float32, hidden_layers: list, max_epocs: int, function: str, rnd: np.random.Generator):
     X = X_train
-    Y = Y_train
+    Y = one_hot(Y_train)
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
-    T = one_hot(Y)
-    W1, W2, W3, b1, b2, b3 = init_params(rnd)
+    input_size = 784
+    output_size = 10
+    layers = np.concatenate([[input_size], hidden_layers, [output_size]])
+    W, b = init_params(layers, rnd)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
-        Z1, A1, Z2, A2, Z3, O = forward_propagation(beta, X, W1, W2, W3, b1, b2, b3)
-        deltaO, deltaZ2, deltaZ1 = backward_propagation(beta, T, Z1, Z2, Z3, W1, W2, W3, A1, A2, O)
-        W1, W2, W3, b1, b2, b3 = update_weights(eta, batch_size, X, A1, A2, W1, W2, W3, b1, b2, b3, deltaO, deltaZ2, deltaZ1)
+        Z, A, O = forward_propagation(beta, layers, X, W, b)
+        delta = backward_propagation(beta, Y, W, Z, O)
+        W, b = update_weights(eta, batch_size, W, b, A, delta)
         
-        E = mse(O, T)
+        E = mse(O, Y)
         if E < 0.01: 
             break
     
-    return W1, W2, W3, b1, b2, b3
+    return W, b
     
-def test_function(beta, X_test, Y_test, W1, W2, W3, b1, b2, b3): 
-    Z1 = W1.dot(X_test) + b1
-    A1 = theta(Z1, beta)
-    Z2 = W2.dot(A1) + b2
-    A2 = theta(Z2, beta)
-    Z3 = W3.dot(A2) + b3
-    O = theta(Z3, beta)
-    test_acc = accuracy(one_hot(Y_test), O)
+def test_function(beta, layers, X_valid, Y_valid, W, b): 
+    _, _, O = forward_propagation(beta, layers, X_valid, W, b)
+    test_acc = accuracy(one_hot(Y_valid), O)
     print("Test accuracy: {}".format(test_acc))
     
 beta = 0.1
 eta = 0.5
-W1, W2, W3, b1, b2, b3 = multilayer(beta, eta, 1000, "sigmoid", random_seed)
-test_function(beta, X_test, Y_test, W1, W2, W3, b1, b2, b3)
+W, b = multilayer(beta, eta, [16, 16], 1000, "sigmoid", random_seed)
+test_function(beta, [16, 16] , X_test, Y_test, W, b)
 
 
 """
