@@ -14,6 +14,18 @@ from pathlib import Path
 import numpy as np
 import ast
 
+
+# SHould be possible to have differrent numbers of hidden layers with different sizes for testing
+# Should probably normalize the input
+# SHould not initialize weights with so high weights
+# Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
+
+
+
+
+
+
+
 # Temporarily random seed: 
 random_seed = np.random.default_rng(42)
 
