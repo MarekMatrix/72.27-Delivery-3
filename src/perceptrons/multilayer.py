@@ -89,13 +89,13 @@ def init_params(rnd: np.random.Generator): # what to write for output?
     N = X_train.shape[0]
     M = 16
     L = 10
-    W1 = create_initial_weight_matrix(M, N, 0, 5, rnd)
-    W2 = create_initial_weight_matrix(M, M, 0, 5, rnd)
-    W3 = create_initial_weight_matrix(L, M, 0, 5, rnd)
+    W1 = create_initial_weight_matrix(M, N, -0.5, 0.5, rnd)
+    W2 = create_initial_weight_matrix(M, M, -0.5, 0.5, rnd)
+    W3 = create_initial_weight_matrix(L, M, -0.5, 0.5, rnd)
     
-    b1 = create_initial_weight_matrix(M, 1, 0, 5, rnd)
-    b2 = create_initial_weight_matrix(M, 1, 0, 5, rnd)
-    b3 = create_initial_weight_matrix(L, 1, 0, 5, rnd)
+    b1 = create_initial_weight_matrix(M, 1, -0.5, 0.5, rnd)
+    b2 = create_initial_weight_matrix(M, 1, -0.5, 0.5, rnd)
+    b3 = create_initial_weight_matrix(L, 1, -0.5, 0.5, rnd)
     
     return W1, W2, W3, b1, b2, b3
 
@@ -150,28 +150,29 @@ def backward_propagation(beta: np.float32, T: np.array, Z1: np.array, Z2: np.arr
     deltaZ1 = W2.T @ deltaZ2 * dtheta(Z1, beta) # How to make sure I get the sum
     return deltaO, deltaZ2, deltaZ1
 
-def update_weights(eta: np.float32, X: np.array, A1: np.array, A2: np.array, W1: np.array, W2: np.array, W3: np.array, b1: np.array, b2: np.array, b3: np.array, deltaO: np.array, deltaZ2: np.array, deltaZ1: np.array) -> np.array: 
-    W1 = W1 + eta * deltaZ1 @ X.T
-    W2 = W2 + eta * deltaZ2 @ A1.T
-    W3 = W3 + eta * deltaO @ A2.T
-    b1 = b1 + eta * deltaZ1.sum(axis=1, keepdims=True)
-    b2 = b2 + eta * deltaZ2.sum(axis=1, keepdims=True)
-    b3 = b3 + eta * deltaO.sum(axis=1, keepdims=True)
+def update_weights(eta: np.float32, batch_size: int, X: np.array, A1: np.array, A2: np.array, W1: np.array, W2: np.array, W3: np.array, b1: np.array, b2: np.array, b3: np.array, deltaO: np.array, deltaZ2: np.array, deltaZ1: np.array) -> np.array: 
+    W1 = W1 + eta * deltaZ1 @ X.T / batch_size
+    W2 = W2 + eta * deltaZ2 @ A1.T / batch_size
+    W3 = W3 + eta * deltaO @ A2.T / batch_size
+    b1 = b1 + eta * deltaZ1.sum(axis=1, keepdims=True) / batch_size
+    b2 = b2 + eta * deltaZ2.sum(axis=1, keepdims=True) / batch_size
+    b3 = b3 + eta * deltaO.sum(axis=1, keepdims=True) / batch_size
     return W1, W2, W3, b1, b2, b3
 
 # Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
 def multilayer(beta: np.float32, eta: np.float32, max_epocs: int, function: str, rnd: np.random.Generator):
     X = X_train
     Y = Y_train
+    batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
     T = one_hot(Y)
     W1, W2, W3, b1, b2, b3 = init_params(rnd)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
         Z1, A1, Z2, A2, Z3, O = forward_propagation(beta, X, W1, W2, W3, b1, b2, b3)
-        deltaO, deltaZ1, deltaZ2 = backward_propagation(beta, T, Z1, Z2, Z3, W1, W2, W3, A1, A2, O)
-        W1, W2, W3, b1, b2, b3 = update_weights(eta, X, A1, A2, W1, W2, W3, b1, b2, b3, deltaO, deltaZ2, deltaZ1)
+        deltaO, deltaZ2, deltaZ1 = backward_propagation(beta, T, Z1, Z2, Z3, W1, W2, W3, A1, A2, O)
+        W1, W2, W3, b1, b2, b3 = update_weights(eta, batch_size, X, A1, A2, W1, W2, W3, b1, b2, b3, deltaO, deltaZ2, deltaZ1)
         
-        E = mse(O, Y)
+        E = mse(O, T)
         if E < 0.01: 
             break
     
@@ -189,7 +190,7 @@ def test_function(beta, X_test, Y_test, W1, W2, W3, b1, b2, b3):
     
 beta = 0.1
 eta = 0.5
-W1, W2, W3, b1, b2, b3 = multilayer(beta, eta, 50, "sigmoid", random_seed)
+W1, W2, W3, b1, b2, b3 = multilayer(beta, eta, 1000, "sigmoid", random_seed)
 test_function(beta, X_test, Y_test, W1, W2, W3, b1, b2, b3)
 
 
