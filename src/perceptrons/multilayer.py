@@ -19,7 +19,7 @@ import ast
 # Should probably normalize the input
 # SHould not initialize weights with so high weights
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
-
+# Should get the data from the data.py file instead of creating them here (they are already there as well)
 
 
 
