@@ -89,14 +89,7 @@ def init_params(layers: list, rnd: np.random.Generator): # what to write for out
     
     return W, b
 
-# Theta function: 
-# ndarray or array???
-def theta(X: np.array, beta: np.float32) -> np.ndarray: 
-    return sigmoid(X, beta)
-
-def dtheta(X: np.array, beta: np.float32) -> np.array: 
-    return dsigmoid(X, beta)
-
+# Theta functions: 
 def sigmoid(X: np.array, beta: np.float32) -> np.array: 
     return 1 / (1 + np.exp(-2 * beta * X))
 
@@ -110,6 +103,12 @@ def dsigmoid(X: np.array, beta: np.float32) -> np.array:
 def dtangent(X: np.array, beta: np.float32) -> np.array: 
     tangent_val = tangent(X, beta)
     return beta * (1 - tangent_val ** 2)
+
+activation_functions = {
+    "sigmoid": (sigmoid, dsigmoid),
+    "tangent": (tangent, dtangent)
+}
+
 
 def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size)
@@ -125,7 +124,8 @@ def one_hot(Y:np.arange) -> np.ndarray:
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-def forward_propagation(beta: np.float32, layers: list, X: np.array, W: np.array, b: np.array) -> np.ndarray:
+def forward_propagation(beta: np.float32, function: str, layers: list, X: np.array, W: np.array, b: np.array) -> np.array:
+    theta, _ = activation_functions[function]
     Z = []
     A = [X]
     
@@ -136,7 +136,8 @@ def forward_propagation(beta: np.float32, layers: list, X: np.array, W: np.array
     
     return Z, A, O
 
-def backward_propagation(beta: np.float32, Y: np.array, W: np.array, Z: np.array, O: np.array) -> np.array:
+def backward_propagation(beta: np.float32, function: str, Y: np.array, W: np.array, Z: np.array, O: np.array) -> np.array:
+    _, dtheta = activation_functions[function]
     delta = [None] * len(W)
     delta[-1] = (Y - O) * dtheta(Z[-1], beta)
     for i in range(len(W) - 2, -1, -1):
@@ -150,7 +151,7 @@ def update_weights(eta: np.float32, batch_size: int, W: np.array, b: np.array, A
     return W, b
 
 # Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
-def multilayer(beta: np.float32, eta: np.float32, hidden_layers: list, max_epocs: int, function: str, rnd: np.random.Generator):
+def multilayer(eta: np.float32, beta: np.float32, function: str, hidden_layers: list, max_epocs: int, rnd: np.random.Generator):
     X = X_train
     Y = one_hot(Y_train)
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
@@ -160,8 +161,8 @@ def multilayer(beta: np.float32, eta: np.float32, hidden_layers: list, max_epocs
     W, b = init_params(layers, rnd)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
-        Z, A, O = forward_propagation(beta, layers, X, W, b)
-        delta = backward_propagation(beta, Y, W, Z, O)
+        Z, A, O = forward_propagation(beta, function, layers, X, W, b)
+        delta = backward_propagation(beta, function, Y, W, Z, O)
         W, b = update_weights(eta, batch_size, W, b, A, delta)
         
         E = mse(O, Y)
@@ -170,15 +171,15 @@ def multilayer(beta: np.float32, eta: np.float32, hidden_layers: list, max_epocs
     
     return W, b
     
-def test_function(beta, layers, X_valid, Y_valid, W, b): 
-    _, _, O = forward_propagation(beta, layers, X_valid, W, b)
+def test_function(beta, function, layers, X_valid, Y_valid, W, b): 
+    _, _, O = forward_propagation(beta, function, layers, X_valid, W, b)
     test_acc = accuracy(one_hot(Y_valid), O)
     print("Test accuracy: {}".format(test_acc))
     
 beta = 0.1
 eta = 0.5
-W, b = multilayer(beta, eta, [16, 16], 1000, "sigmoid", random_seed)
-test_function(beta, [16, 16] , X_test, Y_test, W, b)
+W, b = multilayer(eta, beta, "sigmoid", [16, 7, 16], 1000, random_seed)
+test_function(beta, "sigmoid", [16, 7, 16] , X_test, Y_test, W, b)
 
 
 """
