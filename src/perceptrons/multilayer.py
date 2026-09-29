@@ -84,8 +84,8 @@ def init_params(layers: list, rnd: np.random.Generator): # what to write for out
     for i in range(len(layers) - 1):
         cols = layers[i]
         rows = layers[i + 1]
-        W.append(rnd.uniform(-0.1, 0.1, size=(rows, cols)))
-        b.append(rnd.uniform(-0.1, 0.1, size=(rows, 1)))
+        W.append(rnd.uniform(-0.05, 0.05, size=(rows, cols)))
+        b.append(np.zeros((rows, 1)))
     
     return W, b
 
@@ -111,18 +111,21 @@ activation_functions = {
 
 
 def mse(Y_pred, Y_true):
-    error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size)
+    error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
 def accuracy(Y_pred, Y_true): 
     acc = Y_pred.argmax(axis=0) == Y_true.argmax(axis=0)
     return acc.mean()
 
-def one_hot(Y:np.arange) -> np.ndarray:
+def one_hot(Y: np.arange) -> np.array:
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
+
+def one_hot_decode(O: np.array) -> np.array:
+    return O.argmax(axis=0)
 
 def forward_propagation(beta: np.float32, function: str, layers: list, X: np.array, W: np.array, b: np.array) -> np.array:
     theta, _ = activation_functions[function]
@@ -170,20 +173,38 @@ def multilayer(eta: np.float32, beta: np.float32, function: str, hidden_layers: 
             break
     
     return W, b
+
+
+
+from sklearn.metrics import confusion_matrix 
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def confusion(y_true: np.array, y_pred: np.array):
+    cm = confusion_matrix(y_true, y_pred, labels=range(10))
+    cm_normalized = np.round(cm/np.sum(cm, axis=1).reshape(-1,1), 2)
+    sns.heatmap(cm_normalized, cmap="Blues", annot=True, xticklabels=range(10), yticklabels=range(10))
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.show()
     
+
 def test_function(beta, function, layers, X_valid, Y_valid, W, b): 
     _, _, O = forward_propagation(beta, function, layers, X_valid, W, b)
     test_acc = accuracy(one_hot(Y_valid), O)
     print("Test accuracy: {}".format(test_acc))
+    confusion(Y_valid, one_hot_decode(O))
     
-beta = 0.1
-eta = 0.5
-W, b = multilayer(eta, beta, "sigmoid", [16, 7, 16], 1000, random_seed)
-test_function(beta, "sigmoid", [16, 7, 16] , X_test, Y_test, W, b)
+beta = 1
+eta = 0.05
+W, b = multilayer(eta, beta, "sigmoid", [16, 16], 100, random_seed)
+test_function(beta, "sigmoid", [16, 16] , X_test, Y_test, W, b)
 
 
 """
-# Different methods for updating, online, mini-batch and batch:
+# Different methods for updating, online, m   ini-batch and batch:
 def update_weights(method):
     if method == "online":
         pass
