@@ -7,12 +7,14 @@
 
 import numpy as np
 
-def simple_step_perceptron(x, y):
+def simple_step_perceptron(x, y, BOUND=1000, alpha = 0.1):
+    """
+    Simple Step Perceptron using Rosenblatt's learning rule
+    with a step/sign activation function for binary classification tasks.
+    """
 
     p = len(y)         
     N = x.shape[1]
-    BOUND=1000
-    alpha = 0.1
 
     def ComputeError(x_data, y_data, weights, p_val):
         err_count = 0
@@ -55,3 +57,29 @@ def simple_step_perceptron(x, y):
         i = i + 1
 
     return wmin, errormin, i
+
+def simple_linear_perceptron(x, y, alpha=0.01, epochs=1000):
+    """
+    Simple Linear Perceptron using gradient descent (Delta / Widrow-Hoff rule)
+    to solve linear systems (regression) by minimizing Sum of Squared Errors.
+    """
+
+    p = len(y)
+    N = x.shape[1]
+    w = np.zeros(N)
+
+    for epoch in range(epochs):
+        for mu in range(p):
+            excitation = np.dot(x[mu], w)
+            activation = excitation
+            
+            # Delta rule update: delta_w = eta * (zeta - O) * x
+            error_delta = y[mu] - activation
+            delta_w = alpha * error_delta * x[mu]
+            w = w + delta_w
+            
+    # Compute final Mean Squared Error for tracking/validation
+    predictions = np.dot(x, w)
+    final_mse = np.mean((predictions - y) ** 2)
+
+    return w, final_mse, epochs
