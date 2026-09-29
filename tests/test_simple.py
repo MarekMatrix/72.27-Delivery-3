@@ -6,7 +6,11 @@
 # TODO: step variant fails on XOR, for comparison with the multilayer perceptron
 
 import numpy as np
-from src.perceptrons.simple import simple_step_perceptron, simple_linear_perceptron
+from src.perceptrons.simple import (
+    simple_step_perceptron, 
+    simple_linear_perceptron, 
+    simple_nonlinear_perceptron
+)
 
 def test_step_variant_learns_and():
     #AND: x = [[-1, 1], [1, -1], [-1, -1], [1, 1]], y = [-1, -1, -1, 1]
@@ -32,17 +36,35 @@ def test_linear_variant_fits_linear_data():
     # Target values y = x
     y = x_vals  
     
-    # Train the linear perceptron using default or custom hyperparameters
-    w, final_mse, epochs = simple_linear_perceptron(X, y, alpha=0.01, epochs=1000)
-    
-    # Predict and evaluate how well it fit the dataset
+    w, final_mse, epochs = simple_linear_perceptron(X, y)
+
     predictions = np.dot(X, w)
     mse = np.mean((predictions - y) ** 2)
     
     # Assert that the Mean Squared Error is close to zero, proving it fit the data
     assert mse < 1e-3, f"Linear perceptron failed to fit y=x, final MSE: {mse}"
 
+def test_nonlinear_variant_fits_nonlinear_data():
+    # Generate ~50 samples of a non-linear function (e.g., y = tanh(x))
+    P = 50
+    x_vals = np.linspace(-1, 1, P)
+    
+    # Matrix X: Column 0: x_vals, Column 1: bias term (1s) (shape: P x N)
+    X = np.column_stack((x_vals, np.ones(P)))
+    
+    # Target values y = tanh(x)
+    y = np.tanh(x_vals)  
+    
+    w, final_mse, epochs = simple_nonlinear_perceptron(X, y)
+    
+    predictions = np.tanh(np.dot(X, w))
+    mse = np.mean((predictions - y) ** 2)
+    
+    # Assert that the Mean Squared Error is close to zero, proving it fit the data
+    assert mse < 1e-3, f"Non-linear perceptron failed to fit y=tanh(x), final MSE: {mse}"
+
 if __name__ == "__main__":
     test_step_variant_learns_and()
     test_linear_variant_fits_linear_data()
+    test_nonlinear_variant_fits_nonlinear_data()
     print("All validation tests passed successfully!")

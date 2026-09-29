@@ -68,18 +68,45 @@ def simple_linear_perceptron(x, y, alpha=0.01, epochs=1000):
     N = x.shape[1]
     w = np.zeros(N)
 
-    for epoch in range(epochs):
+    for _ in range(epochs):
         for mu in range(p):
             excitation = np.dot(x[mu], w)
             activation = excitation
             
-            # Delta rule update: delta_w = eta * (zeta - O) * x
             error_delta = y[mu] - activation
             delta_w = alpha * error_delta * x[mu]
             w = w + delta_w
             
     # Compute final Mean Squared Error for tracking/validation
     predictions = np.dot(x, w)
+    final_mse = np.mean((predictions - y) ** 2)
+
+    return w, final_mse, epochs
+
+
+def simple_nonlinear_perceptron(x, y, alpha=0.01, epochs=1000, beta=1.0,activation_fn=np.tanh, derivative_fn=lambda h: 1.0 - np.tanh(h)**2):
+    """
+    Simple Non-Linear Perceptron using gradient descent with a non-linear 
+    activation function and the chain rule for regression tasks. Tanh-function 
+    is set as the defaul function.
+    """
+
+    p = len(y)
+    N = x.shape[1]
+    w = np.zeros(N)
+
+    for _ in range(epochs):
+        for mu in range(p):
+            h = np.dot(x[mu], w)
+
+            activation = activation_fn(beta * h)
+            derivative = beta * derivative_fn(h)
+
+            error_delta = y[mu] - activation
+            delta_w = alpha * error_delta * derivative * x[mu]
+            w = w + delta_w
+            
+    predictions = activation_fn(beta * np.dot(x, w))
     final_mse = np.mean((predictions - y) ** 2)
 
     return w, final_mse, epochs
