@@ -77,14 +77,16 @@ input_size = 784 # Size x[0]
 output_size = 10 # Size y.max
 
 def init_params(layers: list, rnd: np.random.Generator): # what to write for output?
-    # TRY DIFFERENT TYPES OF INITIALIZATION: (random, Xavier...)
+    # Xavier initialization: the bound shrinks with layer size, so the signal neither
+    # vanishes nor saturates as it passes through the layers
     W = []
     b = []
-    
+
     for i in range(len(layers) - 1):
         cols = layers[i]
         rows = layers[i + 1]
-        W.append(rnd.uniform(-0.05, 0.05, size=(rows, cols)))
+        limit = np.sqrt(6 / (rows + cols))
+        W.append(rnd.uniform(-limit, limit, size=(rows, cols)))
         b.append(np.zeros((rows, 1)))
     
     return W, b
@@ -168,8 +170,10 @@ def multilayer(eta: np.float32, beta: np.float32, function: str, hidden_layers: 
         delta = backward_propagation(beta, function, Y, W, Z, O)
         W, b = update_weights(eta, batch_size, W, b, A, delta)
         
+        # mse averages over all 10 outputs, most of them near 0, so 0.01 was reached
+        # at ~90% training accuracy and stopped training early
         E = mse(O, Y)
-        if E < 0.01: 
+        if E < 1e-4:
             break
     
     return W, b
@@ -184,23 +188,26 @@ import numpy as np
 
 def confusion(y_true: np.array, y_pred: np.array):
     cm = confusion_matrix(y_true, y_pred, labels=range(10))
-    cm_normalized = np.round(cm/np.sum(cm, axis=1).reshape(-1,1), 2)
+    # A class with no samples (8 in digits.csv) would divide 0 by 0; leave its row at 0
+    row_sums = np.maximum(np.sum(cm, axis=1).reshape(-1,1), 1)
+    cm_normalized = np.round(cm/row_sums, 2)
     sns.heatmap(cm_normalized, cmap="Blues", annot=True, xticklabels=range(10), yticklabels=range(10))
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
     plt.show()
     
 
-def test_function(beta, function, layers, X_valid, Y_valid, W, b): 
-    _, _, O = forward_propagation(beta, function, layers, X_valid, W, b)
-    test_acc = accuracy(one_hot(Y_valid), O)
-    print("Test accuracy: {}".format(test_acc))
-    confusion(Y_valid, one_hot_decode(O))
-    
+def test_function(beta, function, layers, X_eval, Y_eval, W, b, name="Validation"):
+    _, _, O = forward_propagation(beta, function, layers, X_eval, W, b)
+    acc = accuracy(O, one_hot(Y_eval))
+    print("{} accuracy: {:.3f}".format(name, acc))
+    confusion(Y_eval, one_hot_decode(O))
+
 beta = 1
-eta = 0.05
-W, b = multilayer(eta, beta, "sigmoid", [16, 16], 100, random_seed)
-test_function(beta, "sigmoid", [16, 16] , X_test, Y_test, W, b)
+eta = 0.5
+W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
+# Tune on the validation split; digits_test.csv is only for the final result
+test_function(beta, "sigmoid", [64], X_valid, Y_valid, W, b)
 
 
 """
