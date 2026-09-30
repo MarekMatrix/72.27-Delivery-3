@@ -14,17 +14,17 @@ import numpy as np
 # Temporarily random seed: 
 random_seed = np.random.default_rng(42)
 
-def test_function(beta, function, X_eval, Y_eval, W, b, name="Validation"):
-    _, _, O = forward_propagation(beta, function, X_eval, W, b)
+def test_function():
+    beta = 1
+    eta = 0.5
+    W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
+    _, _, O = forward_propagation(beta, function, X_valid, W, b)
     Y_pred = one_hot_decode(O)
-    acc = accuracy(O, Y_pred)
+    cm = confusion_matrix(Y_valid, Y_pred, 10)
+    acc = accuracy(cm)
     print("{} accuracy: {:.3f}".format(name, acc))
-    cm = confusion_matrix(Y_eval, Y_pred, 10)
     path = Path("results/confusion_matrix_digits")
     plot_confusion_matrix(cm, path, "Confusion matrix of digits")
 
-beta = 1
-eta = 0.5
-W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
+
 # Tune on the validation split; digits_test.csv is only for the final result
-test_function(beta, "sigmoid", X_valid, Y_valid, W, b)
