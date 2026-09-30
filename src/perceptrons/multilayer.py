@@ -71,7 +71,7 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     grads = grad_W + grad_b
     return grads
 
-def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
     Y = Y_train
     batch_size = X.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
@@ -80,16 +80,15 @@ def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, optimizer:
     layers = np.concatenate([[input_size], hidden_layers, [output_size]])
     W, b = init_params(layers, rnd)
     params = W + b
-    # Doing the batch full type (i think)
+    training_error = []
+    validation_error = []
     for _ in range(max_epocs):
         Z, A, O = forward_propagation(beta, function, X, W, b)
         delta = backward_propagation(beta, function, Y, W, Z, O)
         grads = gradient(batch_size, A, delta)
         optimizer.step(params, grads)
-        # mse averages over all 10 outputs, most of them near 0, so 0.01 was reached
-        # at ~90% training accuracy and stopped training early
-        E = mse(O, Y)
-        if E < 1e-4:
-            break
+        training_error.append(mse(O, Y))
+        _, _, O_valid = forward_propagation(beta, function, X_valid, W, b)
+        validation_error.append(mse(O_valid, Y_valid))
     
-    return W, b
+    return W, b, training_error, validation_error

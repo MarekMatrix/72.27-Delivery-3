@@ -6,7 +6,7 @@
 # test 
 
 from perceptrons.metrics import confusion_matrix, accuracy
-from perceptrons.plots import plot_confusion_matrix
+from perceptrons.plots import plot_confusion_matrix, plot_error_convergence
 from perceptrons.multilayer import multilayer, forward_propagation, one_hot_decode, one_hot_encode
 from perceptrons.data import X_valid, Y_valid, X_train, Y_train
 from perceptrons.optimizers import GradientDescent, Momentum, Adam
@@ -19,14 +19,16 @@ def test_multilayer():
     beta = 1
     eta = 0.5
     optimizer = GradientDescent(eta)
-    W, b = multilayer(beta, X_train, one_hot_encode(Y_train), optimizer, "sigmoid", [64], 2000, random_seed)
+    W, b, training_error, validation_error = multilayer(beta, X_train, one_hot_encode(Y_train), X_valid, one_hot_encode(Y_valid), optimizer, "sigmoid", [64], 2000, random_seed)
     _, _, O = forward_propagation(beta, "sigmoid", X_valid, W, b)
+    
+    plot_error_convergence(training_error, validation_error, Path("results/error_convergence.png"), "Error Convergence of Digits")
+    
     Y_pred = one_hot_decode(O)
     cm = confusion_matrix(Y_valid, Y_pred, 10)
     acc = accuracy(cm)
     print("{} accuracy: {:.3f}".format("Validation", acc))
-    path = Path("results/confusion_matrix_digits.png")
-    plot_confusion_matrix(cm, path, "Confusion matrix of digits")
+    plot_confusion_matrix(cm, Path("results/confusion_matrix_digits.png"), "Confusion Matrix of Digits")
     assert acc > 0.6
 
 
