@@ -11,14 +11,14 @@ from perceptrons.multilayer import multilayer, forward_propagation, one_hot_enco
 from perceptrons.data import X_valid, Y_valid
 from pathlib import Path
 import numpy as np
-# Temporarily random seed: 
-random_seed = np.random.default_rng(42)
+
 
 def test_function():
+    random_seed = np.random.default_rng(42)
     beta = 1
     eta = 0.5
     W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
-    _, _, O = forward_propagation(beta, function, X_valid, W, b)
+    _, _, O = forward_propagation(beta, "sigmoid", X_valid, W, b)
     Y_pred = one_hot_decode(O)
     cm = confusion_matrix(Y_valid, Y_pred, 10)
     acc = accuracy(cm)
