@@ -58,18 +58,19 @@ def forward_propagation(beta: float, function: str, X: np.ndarray, W: list[np.nd
 def backward_propagation(beta: float, function: str, Y: np.ndarray, W: list[np.ndarray], Z: list[np.ndarray], O: np.ndarray) -> list[np.ndarray]:
     _, dtheta = activation_functions[function]
     delta = [None] * len(W)
-    delta[-1] = (Y - O) * dtheta(Z[-1], beta)
+    delta[-1] = (O - Y) * dtheta(Z[-1], beta)
     for i in range(len(W) - 2, -1, -1):
         delta[i] = W[i + 1].T @ delta[i + 1] * dtheta(Z[i], beta)
     return delta
 
-def gradient(A: list[np.ndarray], delta: list[np.ndarray]) -> list[np.ndarray]:
+def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> list[np.ndarray]:
     grad_W = []
     grad_b = []
     for i in range(len(delta)):
-        grad_W.append(delta[i] @ A[i].T)
-        grad_b.append(delta[i].sum(axis=1, keepdims=True))
-    return grad_W, grad_b
+        grad_W.append(delta[i] @ A[i].T / batch_size)
+        grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size: int)
+    grad = np.concatenate(grad_W, grad_b)
+    return grad
     
 def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
     for i in range(len(W)):
