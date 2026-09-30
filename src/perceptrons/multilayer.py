@@ -10,7 +10,6 @@
 
 import numpy as np
 from perceptrons.activations import activation_functions
-from perceptrons.optimizers import Optimizer
 
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 
