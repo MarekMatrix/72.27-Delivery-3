@@ -34,7 +34,6 @@ def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
-
 def one_hot_encoding(Y: np.ndarray) -> np.ndarray:
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
