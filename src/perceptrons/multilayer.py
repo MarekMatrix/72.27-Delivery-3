@@ -60,14 +60,4 @@ class MLP:
         grads = grad_W + grad_b
         return grads
 
-def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
-    # n_classes is explicit: inferring it from Y.max() + 1 gives fewer rows when the
-    # highest class happens to be missing from Y (e.g. a small batch or subset)
-    one_hot_Y = np.zeros((Y.size, n_classes))
-    one_hot_Y[np.arange(Y.size), Y] = 1
-    one_hot_Y = one_hot_Y.T
-    return one_hot_Y
-
-def one_hot_decode(O: np.ndarray) -> np.ndarray:
-    return O.argmax(axis=0)
         
