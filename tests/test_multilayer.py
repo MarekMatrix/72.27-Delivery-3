@@ -18,7 +18,7 @@ def test_multilayer():
     random_seed = np.random.default_rng(42)
     beta = 1
     eta = 0.5
-    optimizer = GradientDecent(beta)
+    optimizer = GradientDecent(eta)
     W, b = multilayer(eta, beta, X_train, Y_train, optimizer, "sigmoid", [64], 2000, random_seed)
     _, _, O = forward_propagation(beta, "sigmoid", X_valid, W, b)
     Y_pred = one_hot_decode(O)

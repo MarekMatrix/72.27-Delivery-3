@@ -81,7 +81,6 @@ def multilayer(eta: float, beta: float, X_train: np.ndarray, Y_train: np.ndarray
     layers = np.concatenate([[input_size], hidden_layers, [output_size]])
     W, b = init_params(layers, rnd)
     params = W + b
-    optimizer = GradientDescent(eta)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
         Z, A, O = forward_propagation(beta, function, X, W, b)
