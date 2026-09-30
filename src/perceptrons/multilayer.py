@@ -125,29 +125,14 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
     return W, b
 
 
-
-from sklearn.metrics import confusion_matrix 
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-
-
-def confusion(y_true: np.ndarray, y_pred: np.ndarray) -> None:
-    cm = confusion_matrix(y_true, y_pred, labels=range(10))
-    # A class with no samples (8 in digits.csv) would divide 0 by 0; leave its row at 0
-    row_sums = np.maximum(np.sum(cm, axis=1).reshape(-1,1), 1)
-    cm_normalized = np.round(cm/row_sums, 2)
-    sns.heatmap(cm_normalized, cmap="Blues", annot=True, xticklabels=range(10), yticklabels=range(10))
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
-    plt.show()
-    
-
+from perceptrons.metrics import confusion_matrix
+from perceptrons.metrics import plot_confusion_matrix
 def test_function(beta, function, layers, X_eval, Y_eval, W, b, name="Validation"):
     _, _, O = forward_propagation(beta, function, layers, X_eval, W, b)
     acc = accuracy(O, one_hot(Y_eval))
     print("{} accuracy: {:.3f}".format(name, acc))
-    confusion(Y_eval, one_hot_decode(O))
+    confusion_matrix(Y_eval, one_hot_decode(O))
+    plot_confusion_matrix(Y_eval, one_hot_decode(O), 10)
 
 beta = 1
 eta = 0.5
