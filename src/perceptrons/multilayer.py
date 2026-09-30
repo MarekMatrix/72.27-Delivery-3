@@ -63,6 +63,14 @@ def backward_propagation(beta: float, function: str, Y: np.ndarray, W: list[np.n
         delta[i] = W[i + 1].T @ delta[i + 1] * dtheta(Z[i], beta)
     return delta
 
+def gradient(A: list[np.ndarray], delta: list[np.ndarray]) -> list[np.ndarray]:
+    grad_W = []
+    grad_b = []
+    for i in range(len(delta)):
+        grad_W.append(delta[i] @ A[i].T)
+        grad_b.append(delta[i].sum(axis=1, keepdims=True))
+    return grad_W, grad_b
+    
 def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
     for i in range(len(W)):
         W[i] = W[i] + eta * delta[i] @ A[i].T / batch_size
