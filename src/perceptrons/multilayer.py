@@ -83,12 +83,12 @@ def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, X_valid: n
     training_error = []
     validation_error = []
     for _ in range(max_epocs):
+        _, _, O_valid = forward_propagation(beta, function, X_valid, W, b)
         Z, A, O = forward_propagation(beta, function, X, W, b)
         delta = backward_propagation(beta, function, Y, W, Z, O)
         grads = gradient(batch_size, A, delta)
         optimizer.step(params, grads)
         training_error.append(mse(O, Y))
-        _, _, O_valid = forward_propagation(beta, function, X_valid, W, b)
         validation_error.append(mse(O_valid, Y_valid))
     
     return W, b, training_error, validation_error
