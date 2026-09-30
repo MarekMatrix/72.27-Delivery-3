@@ -40,7 +40,11 @@ def plot_confusion_matrix(cm: np.ndarray, path: Path, title: str = "Confusion ma
     plt.close(fig)
 
 def plot_error_convergence(training_error: list[float], validation_error: list[float], path: Path, title: str = "Error Convergence") -> None:
+    """Save training and validation error per epoch.
 
+    The y-axis is logarithmic: on a linear axis the first few epochs dominate and the
+    slow late-stage descent (is it still improving? do the curves diverge?) is invisible.
+    """
     epochs = np.arange(1, len(training_error) + 1)
 
     fig, ax = plt.subplots()
@@ -48,9 +52,11 @@ def plot_error_convergence(training_error: list[float], validation_error: list[f
     ax.plot(epochs, training_error, label="Training error")
     ax.plot(epochs, validation_error, label="Validation error")
 
+    ax.set_yscale("log")
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("Error")
+    ax.set_ylabel(r"MSE $= \frac{1}{2\,n_{out}\,n_{samples}}\sum (O - Y)^2$ (log scale)")
     ax.set_title(title)
+    ax.grid(True, which="both", alpha=0.3)
     ax.legend()
 
     path.parent.mkdir(parents=True, exist_ok=True)
