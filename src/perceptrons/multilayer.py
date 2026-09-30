@@ -10,7 +10,6 @@
 
 import numpy as np
 from perceptrons.activations import activation_functions
-from perceptrons.data import X_train, Y_train
 from perceptrons.optimizers import Optimizer
 
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
@@ -34,7 +33,7 @@ def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
-def one_hot_encoding(Y: np.ndarray) -> np.ndarray:
+def one_hot_encode(Y: np.ndarray) -> np.ndarray:
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
@@ -72,12 +71,12 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     grads = grad_W + grad_b
     return grads
 
-def multilayer(eta: float, beta: float, X_train: np.ndarray, Y_train: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
-    Y = one_hot_encoding(Y_train)
+    Y = Y_train
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
-    input_size = 784
-    output_size = 10
+    input_size = X.shape[0]
+    output_size = Y.shape[0]
     layers = np.concatenate([[input_size], hidden_layers, [output_size]])
     W, b = init_params(layers, rnd)
     params = W + b
