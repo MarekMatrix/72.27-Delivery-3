@@ -76,7 +76,7 @@ hidden_layers = [16, 16]
 input_size = 784 # Size x[0]
 output_size = 10 # Size y.max
 
-def init_params(layers: list, rnd: np.random.Generator): # what to write for output?
+def init_params(layers: list[int], rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     # Xavier initialization: the bound shrinks with layer size, so the signal neither
     # vanishes nor saturates as it passes through the layers
     W = []
@@ -92,17 +92,17 @@ def init_params(layers: list, rnd: np.random.Generator): # what to write for out
     return W, b
 
 # Theta functions: 
-def sigmoid(X: np.array, beta: np.float32) -> np.array: 
+def sigmoid(X: np.ndarray, beta: float) -> np.ndarray: 
     return 1 / (1 + np.exp(-2 * beta * X))
 
-def tangent(X: np.array, beta: np.float32) -> np.array: 
+def tangent(X: np.ndarray, beta: float) -> np.ndarray: 
     return np.tanh(beta * X)
 
-def dsigmoid(X: np.array, beta: np.float32) -> np.array: 
+def dsigmoid(X: np.ndarray, beta: float) -> np.ndarray: 
     sigmoid_val = sigmoid(X, beta)
     return 2 * beta * sigmoid_val * (1 - sigmoid_val)
 
-def dtangent(X: np.array, beta: np.float32) -> np.array: 
+def dtangent(X: np.ndarray, beta: float) -> np.ndarray: 
     tangent_val = tangent(X, beta)
     return beta * (1 - tangent_val ** 2)
 
@@ -120,16 +120,16 @@ def accuracy(Y_pred, Y_true):
     acc = Y_pred.argmax(axis=0) == Y_true.argmax(axis=0)
     return acc.mean()
 
-def one_hot(Y: np.arange) -> np.array:
+def one_hot(Y: np.ndarray) -> np.ndarray:
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-def one_hot_decode(O: np.array) -> np.array:
+def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
 
-def forward_propagation(beta: np.float32, function: str, layers: list, X: np.array, W: np.array, b: np.array) -> np.array:
+def forward_propagation(beta: float, function: str, layers: list[int], X: np.ndarray, W: list[np.ndarray], b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray], np.ndarray]:
     theta, _ = activation_functions[function]
     Z = []
     A = [X]
@@ -141,7 +141,7 @@ def forward_propagation(beta: np.float32, function: str, layers: list, X: np.arr
     
     return Z, A, O
 
-def backward_propagation(beta: np.float32, function: str, Y: np.array, W: np.array, Z: np.array, O: np.array) -> np.array:
+def backward_propagation(beta: float, function: str, Y: np.ndarray, W: list[np.ndarray], Z: list[np.ndarray], O: np.ndarray) -> list[np.ndarray]:
     _, dtheta = activation_functions[function]
     delta = [None] * len(W)
     delta[-1] = (Y - O) * dtheta(Z[-1], beta)
@@ -149,14 +149,14 @@ def backward_propagation(beta: np.float32, function: str, Y: np.array, W: np.arr
         delta[i] = W[i + 1].T @ delta[i + 1] * dtheta(Z[i], beta)
     return delta
 
-def update_weights(eta: np.float32, batch_size: int, W: np.array, b: np.array, A: np.array, delta: np.array) -> np.array: 
+def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
     for i in range(len(W)):
         W[i] = W[i] + eta * delta[i] @ A[i].T / batch_size
         b[i] = b[i] + eta * delta[i].sum(axis=1, keepdims=True) / batch_size
     return W, b
 
 # Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
-def multilayer(eta: np.float32, beta: np.float32, function: str, hidden_layers: list, max_epocs: int, rnd: np.random.Generator):
+def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
     Y = one_hot(Y_train)
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
@@ -186,7 +186,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def confusion(y_true: np.array, y_pred: np.array):
+def confusion(y_true: np.ndarray, y_pred: np.ndarray) -> None:
     cm = confusion_matrix(y_true, y_pred, labels=range(10))
     # A class with no samples (8 in digits.csv) would divide 0 by 0; leave its row at 0
     row_sums = np.maximum(np.sum(cm, axis=1).reshape(-1,1), 1)
