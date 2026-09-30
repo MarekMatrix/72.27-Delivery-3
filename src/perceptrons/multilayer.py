@@ -11,7 +11,7 @@
 import numpy as np
 from perceptrons.activations import activation_functions
 from perceptrons.data import X_train, Y_train
-from perceptrons.optimizers import GradientDescent
+from perceptrons.optimizers import Optimizer
 
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 
@@ -72,7 +72,7 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     grads = grad_W + grad_b
     return grads
 
-def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def multilayer(eta: float, beta: float, X_train: np.ndarray, Y_train: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
     Y = one_hot_encoding(Y_train)
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)

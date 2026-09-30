@@ -11,6 +11,8 @@ Interface shared by every optimizer:
 
 import numpy as np
 
+class Optimizer(Protocol):
+    def step(self, params: list[np.ndarray], grads: list[np.ndarray]) -> None: ...
 
 class GradientDescent:
     def __init__(self, learning_rate: float) -> None:

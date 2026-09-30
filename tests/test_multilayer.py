@@ -8,7 +8,8 @@
 from perceptrons.metrics import confusion_matrix, accuracy
 from perceptrons.plots import plot_confusion_matrix
 from perceptrons.multilayer import multilayer, forward_propagation, one_hot_decode
-from perceptrons.data import X_valid, Y_valid
+from perceptrons.data import X_valid, Y_valid, X_train, Y_train
+from perceptrons.optimizer import GradientDecent, Momentum, Adam
 from pathlib import Path
 import numpy as np
 
@@ -17,7 +18,8 @@ def test_multilayer():
     random_seed = np.random.default_rng(42)
     beta = 1
     eta = 0.5
-    W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
+    optimizer = GradientDecent(beta)
+    W, b = multilayer(eta, beta, X_train, Y_train, optimizer, "sigmoid", [64], 2000, random_seed)
     _, _, O = forward_propagation(beta, "sigmoid", X_valid, W, b)
     Y_pred = one_hot_decode(O)
     cm = confusion_matrix(Y_valid, Y_pred, 10)
