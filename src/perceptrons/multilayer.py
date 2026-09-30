@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from perceptrons.activations import activation_functions
 from perceptrons.data import X_train, Y_train, X_valid, Y_valid, X_test, Y_test
+from perceptrons.optimizers import GradientDescent
 
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 
@@ -69,8 +70,8 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     for i in range(len(delta)):
         grad_W.append(delta[i] @ A[i].T / batch_size)
         grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size)
-    grad = grad_W + grad_b
-    return grad
+    grads = grad_W + grad_b
+    return grads
     
 def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
     for i in range(len(W)):
@@ -86,12 +87,14 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
     output_size = 10
     layers = np.concatenate([[input_size], hidden_layers, [output_size]])
     W, b = init_params(layers, rnd)
+    params = W + b
+    optimizer = GradientDescent(eta)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
         Z, A, O = forward_propagation(beta, function, X, W, b)
         delta = backward_propagation(beta, function, Y, W, Z, O)
-        W, b = update_weights(eta, batch_size, W, b, A, delta)
-        
+        grads = gradient(batch_size, A, delta)
+        optimizer.step(params, grads)
         # mse averages over all 10 outputs, most of them near 0, so 0.01 was reached
         # at ~90% training accuracy and stopped training early
         E = mse(O, Y)
