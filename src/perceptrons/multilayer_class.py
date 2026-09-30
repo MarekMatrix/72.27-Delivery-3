@@ -48,12 +48,15 @@ class MLP:
             delta[i] = self.W[i + 1].T @ delta[i + 1] * self.dtheta(self.Z[i], self.beta)
         return delta
     
-    def weight_gradients(self, delta: np.ndarray) -> list[np.ndarray]:
+    def weight_gradients(self, delta: list[np.ndarray]) -> list[np.ndarray]:
+        # Read from the batch forward() cached (samples are columns), not stored once:
+        # the last mini-batch of an epoch can be smaller than the others
+        batch_size = self.A[0].shape[1]
         grad_W = []
         grad_b = []
         for i in range(len(delta)):
-            grad_W.append(delta[i] @ self.A[i].T / self.batch_size)
-            grad_b.append(delta[i].sum(axis=1, keepdims=True) / self.batch_size)
+            grad_W.append(delta[i] @ self.A[i].T / batch_size)
+            grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size)
         grads = grad_W + grad_b
         return grads
 

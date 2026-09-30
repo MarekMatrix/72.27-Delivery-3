@@ -8,10 +8,12 @@ import numpy as np
 
 # Assumed interfaces (not defined here):
 #   model.forward(X) -> output           caches whatever backward() needs
-#   model.backward(dE_dO) -> list[grads]  same order as model.params
+#   model.backward(dE_dO) -> list[delta]  one delta (dE/dZ) per layer
+#   model.weight_gradients(delta) -> list[grads]  same order as model.params,
+#                                         divided by the batch size
 #   model.params -> list[np.ndarray]      the arrays the optimizer updates in place
 #   loss.value(Y_pred, Y_true) -> float
-#   loss.gradient(Y_pred, Y_true) -> np.ndarray   dE/dO, same shape as Y_pred
+#   loss.gradient(Y_pred, Y_true) -> np.ndarray   per-sample dE/dO (no 1/n), same shape as Y_pred
 #   optimizer.step(params, grads)         see optimizers.py
 #
 # Convention: samples are COLUMNS, X has shape (n_features, n_samples), as in data.py.
