@@ -68,8 +68,8 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     grad_b = []
     for i in range(len(delta)):
         grad_W.append(delta[i] @ A[i].T / batch_size)
-        grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size: int)
-    grad = np.concatenate(grad_W, grad_b)
+        grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size)
+    grad = grad_W + grad_b
     return grad
     
 def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
