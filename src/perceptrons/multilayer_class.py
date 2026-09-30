@@ -48,7 +48,7 @@ class MLP:
             delta[i] = self.W[i + 1].T @ delta[i + 1] * self.dtheta(self.Z[i], self.beta)
         return delta
     
-    def gradient(self, delta: np.ndarray) -> list[np.ndarray]:
+    def weight_gradients(self, delta: np.ndarray) -> list[np.ndarray]:
         grad_W = []
         grad_b = []
         for i in range(len(delta)):

@@ -67,7 +67,7 @@ def train_epoch(
 
     for X_batch, Y_batch in iterate_minibatches(X, Y, batch_size, rng):
         output = model.forward(X_batch)
-        grads = model.backward(loss.gradient(output, Y_batch))
+        grads = model.weight_gradients(model.backward(loss.gradient(output, Y_batch)))
         optimizer.step(model.params, grads)
 
         n = X_batch.shape[1]
