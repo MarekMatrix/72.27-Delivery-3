@@ -31,13 +31,12 @@ class MLP:
         self.params = self.W + self.b
     
     def forward(self, X: np.ndarray) -> np.ndarray: 
-        theta, _ = activation_functions[function]
         self.Z = []
         self.A = [X]
         
         for i in range(len(self.W)):
             self.Z.append(self.W[i] @ self.A[i] + self.b[i])
-            self.A.append(theta(self.Z[i], self.beta))
+            self.A.append(self.theta(self.Z[i], self.beta))
         O = self.A[-1]
         
         return O
@@ -45,7 +44,7 @@ class MLP:
     def backward(self, dE_dO: np.ndarray) -> list[np.ndarray]: 
         delta = [None] * len(self.W)
         delta[-1] = (dE_dO) * self.dtheta(self.Z[-1], self.beta)
-        for i in range(len(W) - 2, -1, -1):
+        for i in range(len(self.W) - 2, -1, -1):
             delta[i] = self.W[i + 1].T @ delta[i + 1] * self.dtheta(self.Z[i], self.beta)
         return delta
     
@@ -58,10 +57,6 @@ class MLP:
         grads = grad_W + grad_b
         return grads
 
-def mse(Y_pred, Y_true):
-    error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
-    return error
-
 def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
     # n_classes is explicit: inferring it from Y.max() + 1 gives fewer rows when the
     # highest class happens to be missing from Y (e.g. a small batch or subset)
@@ -73,25 +68,3 @@ def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
 def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
         
-
-def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray], list[float], list[float]]:
-    X = X_train
-    Y = Y_train
-    batch_size = X.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
-    input_size = X.shape[0]
-    output_size = Y.shape[0]
-    layers = np.concatenate([[input_size], hidden_layers, [output_size]])
-    W, b = init_params(layers, rnd)
-    params = W + b
-    training_error = []
-    validation_error = []
-    for _ in range(max_epocs):
-        _, _, O_valid = forward_propagation(beta, function, X_valid, W, b)
-        Z, A, O = forward_propagation(beta, function, X, W, b)
-        delta = backward_propagation(beta, function, Y, W, Z, O)
-        grads = gradient(batch_size, A, delta)
-        optimizer.step(params, grads)
-        training_error.append(mse(O, Y))
-        validation_error.append(mse(O_valid, Y_valid))
-    
-    return W, b, training_error, validation_error
