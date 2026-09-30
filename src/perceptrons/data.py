@@ -23,6 +23,29 @@ X = np.array(
     digits["image"].apply(ast.literal_eval).tolist()
 )
 
+# Importing additional Exercise 3 data:
+more_digits_path = Path(__file__).parent.parent.parent / "data" / "more_digits.csv"
+more_digits = pd.read_csv(more_digits_path)
+
+# Own split index: more_digits has a different number of rows than digits
+more_split_index = int(len(more_digits) * 0.8)
+
+Y_more = more_digits["label"].to_numpy()
+X_more = np.array(
+    more_digits["image"].apply(ast.literal_eval).tolist()
+)
+
+# Split Exercise 3 training and validation data
+# (checked: the file is not sorted by label, so an unshuffled split is fine)
+Y_more_train = Y_more[:more_split_index]
+X_more_train = X_more[:more_split_index].T
+
+Y_more_valid = Y_more[more_split_index:]
+X_more_valid = X_more[more_split_index:].T
+
+
+
+
 # Split training and validation data
 Y_train = Y[:split_index]
 X_train = X[:split_index].T
@@ -52,3 +75,4 @@ def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
 
 def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
+
