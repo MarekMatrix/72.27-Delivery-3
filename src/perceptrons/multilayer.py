@@ -8,10 +8,9 @@
 # layer 1 being og 16 perceptrons and layer 2 as well, end layer will be of 10 perceptrons,
 # one for each number
 
-import matplotlib.pyplot as plt
 import numpy as np
 from perceptrons.activations import activation_functions
-from perceptrons.data import X_train, Y_train, X_valid, Y_valid, X_test, Y_test
+from perceptrons.data import X_train, Y_train
 from perceptrons.optimizers import GradientDescent
 
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
@@ -72,12 +71,6 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
         grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size)
     grads = grad_W + grad_b
     return grads
-    
-def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.ndarray], A: list[np.ndarray], delta: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]: 
-    for i in range(len(W)):
-        W[i] = W[i] + eta * delta[i] @ A[i].T / batch_size
-        b[i] = b[i] + eta * delta[i].sum(axis=1, keepdims=True) / batch_size
-    return W, b
 
 def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
@@ -102,19 +95,3 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
             break
     
     return W, b
-
-
-"""
-# Different methods for updating, online, m   ini-batch and batch:
-def update_weights(method):
-    if method == "online":
-        pass
-    elif method == "mini-batch":
-        pass
-    elif method == "batch":
-        pass
-    else: 
-        Exception "No method called " + method
-    pass
-    
-"""
