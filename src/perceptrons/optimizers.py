@@ -10,6 +10,10 @@ Interface shared by every optimizer:
 """
 
 import numpy as np
+from typing import Protocol
+
+class Optimizer(Protocol):
+    def step(self, params: list[np.ndarray], grads: list[np.ndarray]) -> None: ...
 
 
 class GradientDescent:
