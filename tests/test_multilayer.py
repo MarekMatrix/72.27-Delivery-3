@@ -7,13 +7,13 @@
 
 from perceptrons.metrics import confusion_matrix, accuracy
 from perceptrons.plots import plot_confusion_matrix
-from perceptrons.multilayer import multilayer, forward_propagation, one_hot_encoding, one_hot_decode
+from perceptrons.multilayer import multilayer, forward_propagation, one_hot_decode
 from perceptrons.data import X_valid, Y_valid
 from pathlib import Path
 import numpy as np
 
 
-def test_function():
+def test_multilayer():
     random_seed = np.random.default_rng(42)
     beta = 1
     eta = 0.5
