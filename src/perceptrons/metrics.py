@@ -10,13 +10,16 @@ def accuracy(cm: np.array) -> np.float32:
     return np.trace(cm) / np.sum(cm)
 
 def recall(cm: np.array) -> np.array:
-    row_sums = np.maximum(np.sum(cm, axis=1), 1)
-    return np.diag(cm) / row_sums
-    # return [cm[i][i] / sum(cm[i]) for i in range(len(cm))]
+    row_sums = np.sum(cm, axis=1)
+
+    return np.where(
+        row_sums == 0,
+        np.nan,
+        np.diag(cm) / row_sums
+    )
     
-def confusion_matrix(y_true: np.array, y_pred: np.array) -> np.array:
-    size = max(y_true.max(), y_pred.max()) + 1
-    cm = np.zeros((size, size), dtype=int)
+def confusion_matrix(y_true: np.array, y_pred: np.array, n_classes: int) -> np.array:
+    cm = np.zeros((n_classes, n_classes), dtype=int)
 
     for i in range(len(y_true)):
         cm[y_true[i], y_pred[i]] += 1
