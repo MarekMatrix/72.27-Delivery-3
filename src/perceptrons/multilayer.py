@@ -10,18 +10,13 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+from perceptrons.activations import activation_functions
 from perceptrons.data import X_train, Y_train, X_valid, Y_valid, X_test, Y_test
 
 # SHould be possible to have differrent numbers of hidden layers with different sizes for testing
 # Should probably normalize the input
 # SHould not initialize weights with so high weights
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
-
-# Temporarily random seed: 
-random_seed = np.random.default_rng(42)
-hidden_layers = [16, 16]
-input_size = 784 # Size x[0]
-output_size = 10 # Size y.max
 
 def init_params(layers: list[int], rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     # Xavier initialization: the bound shrinks with layer size, so the signal neither
@@ -38,35 +33,12 @@ def init_params(layers: list[int], rnd: np.random.Generator) -> tuple[list[np.nd
     
     return W, b
 
-# Theta functions: 
-def sigmoid(X: np.ndarray, beta: float) -> np.ndarray: 
-    return 1 / (1 + np.exp(-2 * beta * X))
-
-def tangent(X: np.ndarray, beta: float) -> np.ndarray: 
-    return np.tanh(beta * X)
-
-def dsigmoid(X: np.ndarray, beta: float) -> np.ndarray: 
-    sigmoid_val = sigmoid(X, beta)
-    return 2 * beta * sigmoid_val * (1 - sigmoid_val)
-
-def dtangent(X: np.ndarray, beta: float) -> np.ndarray: 
-    tangent_val = tangent(X, beta)
-    return beta * (1 - tangent_val ** 2)
-
-activation_functions = {
-    "sigmoid": (sigmoid, dsigmoid),
-    "tangent": (tangent, dtangent)
-}
-
 def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
-def accuracy(Y_pred, Y_true): 
-    acc = Y_pred.argmax(axis=0) == Y_true.argmax(axis=0)
-    return acc.mean()
 
-def one_hot(Y: np.ndarray) -> np.ndarray:
+def one_hot_encoding(Y: np.ndarray) -> np.ndarray:
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
@@ -104,7 +76,7 @@ def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.
 # Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
 def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
-    Y = one_hot(Y_train)
+    Y = one_hot_encoding(Y_train)
     batch_size = X_train.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
     input_size = 784
     output_size = 10
@@ -125,20 +97,7 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
     return W, b
 
 
-from perceptrons.metrics import confusion_matrix
-from perceptrons.metrics import plot_confusion_matrix
-def test_function(beta, function, layers, X_eval, Y_eval, W, b, name="Validation"):
-    _, _, O = forward_propagation(beta, function, layers, X_eval, W, b)
-    acc = accuracy(O, one_hot(Y_eval))
-    print("{} accuracy: {:.3f}".format(name, acc))
-    confusion_matrix(Y_eval, one_hot_decode(O))
-    plot_confusion_matrix(Y_eval, one_hot_decode(O), 10)
 
-beta = 1
-eta = 0.5
-W, b = multilayer(eta, beta, "sigmoid", [64], 2000, random_seed)
-# Tune on the validation split; digits_test.csv is only for the final result
-test_function(beta, "sigmoid", [64], X_valid, Y_valid, W, b)
 
 
 """

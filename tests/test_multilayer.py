@@ -7,7 +7,7 @@
 
 from src.perceptrons.metrics import confusion_matrix, accuracy
 from src.perceptrons.metrics import plot_confusion_matrix
-from src.perceptrons.multilayer import multilayer, forward_propagation, one_hot, one_hot_decode
+from src.perceptrons.multilayer import multilayer, forward_propagation, one_hot_encoding, one_hot_decode
 from src.perceptrons.data import X_valid, Y_valid
 
 # Temporarily random seed: 
@@ -15,7 +15,7 @@ random_seed = np.random.default_rng(42)
 
 def test_function(beta, function, layers, X_eval, Y_eval, W, b, name="Validation"):
     _, _, O = forward_propagation(beta, function, layers, X_eval, W, b)
-    acc = accuracy(O, one_hot(Y_eval))
+    acc = accuracy(O, one_hot_encoding(Y_eval))
     print("{} accuracy: {:.3f}".format(name, acc))
     confusion_matrix(Y_eval, one_hot_decode(O))
     plot_confusion_matrix(Y_eval, one_hot_decode(O), 10)
