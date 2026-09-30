@@ -33,7 +33,7 @@ def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
-def one_hot_encode(Y: np.ndarray) -> np.ndarray:
+def one_hot_encode(Y: np.ndarray) -> np.ndarray: # fix to take in n_classes
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
@@ -71,7 +71,7 @@ def gradient(batch_size: int, A: list[np.ndarray], delta: list[np.ndarray]) -> l
     grads = grad_W + grad_b
     return grads
 
-def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def multilayer(beta: float, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray, optimizer: Optimizer, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray], list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     X = X_train
     Y = Y_train
     batch_size = X.shape[1] # For now here, but should be a hyperparameter (and should also affect the amount of input samples are used to update per iteration)
