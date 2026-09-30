@@ -22,9 +22,10 @@ def test_function():
     Y_pred = one_hot_decode(O)
     cm = confusion_matrix(Y_valid, Y_pred, 10)
     acc = accuracy(cm)
-    print("{} accuracy: {:.3f}".format(name, acc))
-    path = Path("results/confusion_matrix_digits")
+    print("{} accuracy: {:.3f}".format("Validation", acc))
+    path = Path("results/confusion_matrix_digits.png")
     plot_confusion_matrix(cm, path, "Confusion matrix of digits")
+    assert acc > 0.6
 
 
 # Tune on the validation split; digits_test.csv is only for the final result
