@@ -13,9 +13,6 @@ import numpy as np
 from perceptrons.activations import activation_functions
 from perceptrons.data import X_train, Y_train, X_valid, Y_valid, X_test, Y_test
 
-# SHould be possible to have differrent numbers of hidden layers with different sizes for testing
-# Should probably normalize the input
-# SHould not initialize weights with so high weights
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 
 def init_params(layers: list[int], rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
@@ -47,7 +44,7 @@ def one_hot_encoding(Y: np.ndarray) -> np.ndarray:
 def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
 
-def forward_propagation(beta: float, function: str, layers: list[int], X: np.ndarray, W: list[np.ndarray], b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray], np.ndarray]:
+def forward_propagation(beta: float, function: str, X: np.ndarray, W: list[np.ndarray], b: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray], np.ndarray]:
     theta, _ = activation_functions[function]
     Z = []
     A = [X]
@@ -73,7 +70,6 @@ def update_weights(eta: float, batch_size: int, W: list[np.ndarray], b: list[np.
         b[i] = b[i] + eta * delta[i].sum(axis=1, keepdims=True) / batch_size
     return W, b
 
-# Right now the function doesnt do anything, but would want it to choose the type of nonlinear function to be used 
 def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int], max_epocs: int, rnd: np.random.Generator) -> tuple[list[np.ndarray], list[np.ndarray]]:
     X = X_train
     Y = one_hot_encoding(Y_train)
@@ -84,7 +80,7 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
     W, b = init_params(layers, rnd)
     # Doing the batch full type (i think)
     for _ in range(max_epocs):
-        Z, A, O = forward_propagation(beta, function, layers, X, W, b)
+        Z, A, O = forward_propagation(beta, function, X, W, b)
         delta = backward_propagation(beta, function, Y, W, Z, O)
         W, b = update_weights(eta, batch_size, W, b, A, delta)
         
@@ -95,9 +91,6 @@ def multilayer(eta: float, beta: float, function: str, hidden_layers: list[int],
             break
     
     return W, b
-
-
-
 
 
 """
