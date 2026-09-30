@@ -8,71 +8,18 @@
 # layer 1 being og 16 perceptrons and layer 2 as well, end layer will be of 10 perceptrons,
 # one for each number
 
-import pandas as pd
 import matplotlib.pyplot as plt
-from pathlib import Path
 import numpy as np
-import ast
+from perceptrons.data import X_train, Y_train, X_valid, Y_valid, X_test, Y_test
 
 # SHould be possible to have differrent numbers of hidden layers with different sizes for testing
 # Should probably normalize the input
 # SHould not initialize weights with so high weights
 # Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
-# Should get the data from the data.py file instead of creating them here (they are already there as well)
 
 # Temporarily random seed: 
 random_seed = np.random.default_rng(42)
-
-# Importing all training data: 
-# Importing all training data:
-# SHOULD GET THE DATA D`FROM THE DATA FILE!
-digits_path = Path(__file__).parent.parent.parent / "data" / "digits.csv"
-digits = pd.read_csv(digits_path)
-
-m, n = digits.shape
-split_index = int(len(digits) * 0.8)
-
-Y = digits["label"].to_numpy()
-
-X = np.array(
-    digits["image"].apply(ast.literal_eval).tolist()
-)
-
-# Split training and validation data
-Y_train = Y[:split_index]
-X_train = X[:split_index].T
-
-Y_valid = Y[split_index:]
-X_valid = X[split_index:].T
-
-print(Y_train.shape)
-print(X_train.shape)
-print(Y_valid.shape)
-print(X_valid.shape)
-
-
-# Importing all test data:
-digits_test_path = Path(__file__).parent.parent.parent / "data" / "digits_test.csv"
-digits_test = pd.read_csv(digits_test_path)
-
-Y_test = digits_test["label"].to_numpy()
-
-X_test = np.array(
-    digits_test["image"].apply(ast.literal_eval).tolist()
-).T
-
-print(Y_test.shape)
-print(X_test.shape)
-
-
-image = X_train[:, 0].reshape((28, 28))
-
 hidden_layers = [16, 16]
-
-# Testing plotting of numbers
-#plt.imshow(image, cmap="gray")
-#plt.show()
-
 input_size = 784 # Size x[0]
 output_size = 10 # Size y.max
 
@@ -110,7 +57,6 @@ activation_functions = {
     "sigmoid": (sigmoid, dsigmoid),
     "tangent": (tangent, dtangent)
 }
-
 
 def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
