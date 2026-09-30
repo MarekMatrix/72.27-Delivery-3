@@ -19,7 +19,7 @@ def test_multilayer():
     beta = 1
     eta = 0.5
     optimizer = GradientDescent(eta)
-    W, b, training_error, validation_error = multilayer(beta, X_train, one_hot_encode(Y_train), X_valid, one_hot_encode(Y_valid), optimizer, "sigmoid", [64], 2000, random_seed)
+    W, b, training_error, validation_error = multilayer(beta, X_train, one_hot_encode(Y_train, 10), X_valid, one_hot_encode(Y_valid, 10), optimizer, "sigmoid", [64], 2000, random_seed)
     _, _, O = forward_propagation(beta, "sigmoid", X_valid, W, b)
     
     plot_error_convergence(training_error, validation_error, Path("results/error_convergence.png"), "Error Convergence of Digits")

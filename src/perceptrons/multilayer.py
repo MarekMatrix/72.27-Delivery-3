@@ -33,8 +33,10 @@ def mse(Y_pred, Y_true):
     error = ((Y_pred - Y_true) ** 2).sum() / (2 * Y_pred.size) # Divide by batch_size?
     return error
 
-def one_hot_encode(Y: np.ndarray) -> np.ndarray: # fix to take in n_classes
-    one_hot_Y = np.zeros((Y.size, Y.max() + 1))
+def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
+    # n_classes is explicit: inferring it from Y.max() + 1 gives fewer rows when the
+    # highest class happens to be missing from Y (e.g. a small batch or subset)
+    one_hot_Y = np.zeros((Y.size, n_classes))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
