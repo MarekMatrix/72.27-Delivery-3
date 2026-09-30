@@ -6,7 +6,7 @@
 # TODO: step variant fails on XOR, for comparison with the multilayer perceptron
 
 import numpy as np
-from src.perceptrons.simple import (
+from perceptrons.simple_tests import (
     simple_step_perceptron, 
     simple_linear_perceptron, 
     simple_nonlinear_perceptron
