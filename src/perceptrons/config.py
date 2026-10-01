@@ -1,28 +1,50 @@
-"""Experiment configuration: everything needed to reproduce a run, stored with its results."""
+"""Experiment configuration: everything needed to reproduce a run, stored with its results.
+
+Pure data holder -- no logic lives here.
+"""
+
+from dataclasses import dataclass, field
+from enum import Enum
 
 
+class OptimizerMethod(str, Enum):
+    GradientDescent = "gradient_descent"
+    Momentum = "momentum"
+    Adam = "adam"
 
-from dataclasses import dataclass, asdict
-from pathlib import Path
-import json
+
+class ActivationMethod(str, Enum):
+    Sigmoid = "sigmoid"
+    Tangent = "tangent"
+
 
 @dataclass
-class ExperimentConfig:
-    exercise: int
-    seed: int
-    learning_rate: float
-    epochs: int
-    batch_size: int
-    architecture: list[int]
-    activation: str
-    optimizer: str
+class Config:
+    # Problem parameters (not hyperparameters)
+    n_classes: int = 10
+    n_features: int = 784
 
+    # Hyperparameters
+    optimizer_method: OptimizerMethod = OptimizerMethod.GradientDescent
+    activation_method: ActivationMethod = ActivationMethod.Sigmoid
+    activation_parameter: float = 0.5
+
+    # Batch size alone decides the update type: 1 = online, >= n_samples = full batch,
+    # anything in between = mini-batch
+    batch_size: int = 32
+    hidden_layers: list[int] = field(default_factory=lambda: [16, 16])
+    learning_rate: float = 0.1
+    epochs: int = 50
+
+    # The rng of a run is created from this seed, so the saved config reproduces the run
+    random_seed: int = 0
+
+    extra: dict = field(default_factory=dict)  # escape hatch for one-off experiment knobs
+
+"""
     def save(self, path: str | Path) -> None:
 
-        """
-        Save the experiment configuration to a JSON file.
-
-        """
+        "Save the experiment configuration to a JSON file."
 
         path = Path(path)
 
@@ -40,9 +62,7 @@ class ExperimentConfig:
 
     def load(cls, path: str | Path) -> "ExperimentConfig":
 
-        """
-        Load an experiment configuration from a JSON file.
-        """
+        "Load an experiment configuration from a JSON file."
 
         path = Path(path)
 
@@ -51,29 +71,6 @@ class ExperimentConfig:
             data = json.load(file)
 
         return cls(**data)
-
-    '''
-    Example usage:
-    config = ExperimentConfig(
-    exercise=3,
-    seed=42,
-    learning_rate=0.001,
-    epochs=100,
-    batch_size=64,
-    architecture=[784, 128, 64, 10],
-    activation="relu",
-    optimizer="adam"
-    )
-
-    config.save("results/test_config.json")
-
-    loaded_config = ExperimentConfig.load("results/test_config.json")
-
-    print(config)
-    print(loaded_config)
-    print("Configurations are equal:", config == loaded_config)
         
-    
-    
-    
-    '''
+
+"""

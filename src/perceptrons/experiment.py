@@ -1,92 +1,75 @@
-"""
-Runs a configured experiment and records it under results/.
+"""Runs a configured experiment and records it under results/. Never plots."""
 
-This module is responsible for storing the outputs of an experiment.
-Plotting and analysis are handled separately in plots.py.
-"""
+# TODO: save a trained model with its config, and load it back to resume training
 
-from dataclasses import dataclass, asdict
-from pathlib import Path
-import json
+import time
+
+import numpy as np
+
+from perceptrons.config import Config, OptimizerMethod
+from perceptrons.data import one_hot_decode, one_hot_encode
+from perceptrons.losses import MSE
+from perceptrons.metrics import accuracy, confusion_matrix, recall
+from perceptrons.multilayer import MLP
+from perceptrons.optimizers import Adam, GradientDescent, Momentum
+from perceptrons.training import History, train
+
+# Name in the config -> optimizer class. A new optimizer is built for every run:
+# Momentum and Adam keep state between steps, which must not carry over to the next run.
+OPTIMIZERS = {
+    OptimizerMethod.GradientDescent: GradientDescent,
+    OptimizerMethod.Momentum: Momentum,
+    OptimizerMethod.Adam: Adam,
+}
 
 
-@dataclass
+def run_experiment(config: Config, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray) -> dict:
+    """Train one model from `config`, evaluate it on the validation split, return what to save.
 
-class ExperimentResult:
-
+    Y_train / Y_valid are digit labels; they are one-hot encoded here for training, and the
+    labels are kept for the confusion matrix. The returned dict only holds plain Python
+    types, so it can be written to JSON as is.
     """
+    # The only source of randomness, so the seed saved in the config reproduces the run
+    rng = np.random.default_rng(config.random_seed)
+    Y_train_one_hot = one_hot_encode(Y_train, config.n_classes)
+    Y_valid_one_hot = one_hot_encode(Y_valid, config.n_classes)
 
-    Stores the results produced by one experiment run.
+    layers = [config.n_features] + config.hidden_layers + [config.n_classes]
 
-    Attributes
+    model = MLP(layers, config.activation_method, config.activation_parameter, rng)
+    loss = MSE()
+    optimizer = OPTIMIZERS[config.optimizer_method](config.learning_rate)
 
-    ----------
+    def report_progress(epoch: int, history: History) -> None:
+        if (epoch + 1) % 10 == 0:
+            print(f"epoch {epoch + 1}/{config.epochs}  train loss {history.train_loss[-1]:.4f}  "
+                  f"valid loss {history.valid_loss[-1]:.4f}")
 
-    train_loss : list[float]
+    start = time.perf_counter()
+    history = train(
+        model, loss, optimizer, X_train, Y_train_one_hot,
+        epochs=config.epochs,
+        batch_size=config.batch_size,
+        rng=rng,
+        X_valid=X_valid,
+        Y_valid=Y_valid_one_hot,
+        on_epoch=report_progress,
+    )
+    total_seconds = time.perf_counter() - start
 
-        Training loss recorded after each epoch.
+    Y_pred = one_hot_decode(model.forward(X_valid))  # labels, not one-hot
+    cm = confusion_matrix(Y_valid, Y_pred, config.n_classes)  # compares labels with labels
+    acc = accuracy(cm)
 
-    validation_loss : list[float]
-
-        Validation loss recorded after each epoch.
-
-    train_accuracy : list[float]
-
-        Training accuracy recorded after each epoch.
-
-    validation_accuracy : list[float]
-
-        Validation accuracy recorded after each epoch.
-
-    test_loss : float | None
-
-        Final loss on the held-out test set.
-
-        This should only be computed after model selection.
-
-    test_accuracy : float | None
-
-        Final accuracy on the held-out test set.
-
-        This should only be computed after model selection.
-
-    training_time : float
-
-        Total training time in seconds.
-
-    """
-
-    train_loss: list[float]
-    validation_loss: list[float]
-    train_accuracy: list[float]
-    validation_accuracy: list[float]
-    test_loss: float | None
-    test_accuracy: float | None
-    training_time: float
-
-
-def save_result(result: ExperimentResult, path: str | Path) -> None:
-    """
-    Save an experiment result as JSON.
-
-    Parameters
-    ----------
-    result : ExperimentResult
-        Results produced by an experiment.
-
-    path : str or Path
-        File where the results should be stored.
-    """
-    path = Path(path)
-
-    # Create the directory if it does not exist.
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    with path.open("w", encoding="utf-8") as file:
-        json.dump(asdict(result), file, indent=4)
-
-
-# TODO: integrate with training.py when Exercise 2 is ready
-# TODO: report progress while training
-# TODO: save model weights
-# TODO: load model and configuration to resume training
+    return {
+        "train_loss": history.train_loss,
+        "valid_loss": history.valid_loss,
+        "epoch_seconds": history.epoch_seconds,
+        "total_seconds": total_seconds,
+        "accuracy": float(acc),
+        # A class missing from the validation split (8 in digits.csv) has recall NaN,
+        # which is not valid JSON; store it as null
+        "recall": [None if np.isnan(r) else float(r) for r in recall(cm)],
+        "confusion_matrix": cm.tolist(),
+    }
