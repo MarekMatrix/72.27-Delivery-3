@@ -12,7 +12,14 @@ from dataclasses import asdict
 from pathlib import Path
 
 from perceptrons.config import ActivationMethod, Config, OptimizerMethod
-from perceptrons.data import digits_path, load_digits, split_train_and_validation
+from perceptrons.data import (
+    digits_path,
+    load_digits,
+    split_train_and_validation,
+    split_train_and_validation_stratified,
+    oversample_training,
+    add_unique_training_samples,
+    )
 from perceptrons.experiment import run_experiment
 
 
@@ -32,6 +39,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--activation", choices=[m.value for m in ActivationMethod], default=ActivationMethod.Sigmoid.value, help="Type of activation function used by each perceptron")
 
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--dataset", type=Path, default=digits_path)
+    parser.add_argument(
+    "--split", choices=["sequential", "stratified"], default="sequential"
+)
+    parser.add_argument("--oversample", action="store_true")
+    parser.add_argument("--extra-dataset", type=Path, default=None)
+    parser.add_argument("--save-model", action="store_true")
     return parser
 
 
@@ -60,9 +74,38 @@ def main(argv: list[str] | None = None) -> None:
         random_seed=args.seed,
     )
 
-    X, Y = load_digits(digits_path)
-    X_train, X_valid, Y_train, Y_valid = split_train_and_validation(X, Y)
-    result = run_experiment(config, X_train, Y_train, X_valid, Y_valid)
+    config.extra["dataset"] = str(args.dataset)
+    config.extra["split"] = args.split
+    config.extra["oversample"] = args.oversample
+    config.extra["extra_dataset"] = (
+        str(args.extra_dataset) if args.extra_dataset is not None else None
+    )
+
+    X, Y = load_digits(args.dataset)
+    if args.split == "stratified":
+        X_train, X_valid, Y_train, Y_valid = split_train_and_validation_stratified(
+            X, Y, seed=args.seed
+        )
+    else:
+        X_train, X_valid, Y_train, Y_valid = split_train_and_validation(X, Y)
+    if args.extra_dataset is not None:
+        X_train, Y_train = add_unique_training_samples(
+            X_train, Y_train, X_valid, args.extra_dataset
+        )
+        print(f"Training samples after adding data: {Y_train.size}")
+    if args.oversample:
+        X_train, Y_train = oversample_training(
+            X_train, Y_train, seed=args.seed
+        )
+    model_path = (
+        Path(args.output_dir) / f"{run_name(config)}.npz"
+        if args.save_model else None
+    )
+    result = run_experiment(
+        config, X_train, Y_train, X_valid, Y_valid,
+        model_path=model_path,
+    )
+    
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
