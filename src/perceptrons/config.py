@@ -1,13 +1,6 @@
-"""Experiment configuration: everything needed to reproduce a run, stored with its results."""
+"""Experiment configuration: everything needed to reproduce a run, stored with its results.
 
-# TODO: the hyperparameters Exercise 2 varies — learning rate, architecture, optimizer — plus any others
-# TODO: write to and read from disk
-
-
-"""Hyperparameter container for a GA run.
-
-Pure data holder -- no logic lives here. Whoever owns engine.py decides
-which of these are actually read; add fields as the engine needs them.
+Pure data holder -- no logic lives here.
 """
 
 from dataclasses import dataclass, field
@@ -18,12 +11,6 @@ class OptimizerMethod(str, Enum):
     GradientDescent = "gradient_descent"
     Momentum = "momentum"
     Adam = "adam"
-
-
-class BatchMethod(str, Enum):
-    Online = "online"
-    MiniBatch = "mini_batch"
-    Batch = "batch"
 
 
 class ActivationMethod(str, Enum):
@@ -38,16 +25,18 @@ class Config:
     n_features: int = 784
 
     # Hyperparameters
-
     optimizer_method: OptimizerMethod = OptimizerMethod.GradientDescent
-    batch_method: BatchMethod = BatchMethod.Batch
     activation_method: ActivationMethod = ActivationMethod.Sigmoid
     activation_parameter: float = 0.5
-    
-    batch_size: int = 32
-    hidden_layers: list = [16, 16]
-    learning_rate: float = 0.1
 
-    random_seed: int | None = None
+    # Batch size alone decides the update type: 1 = online, >= n_samples = full batch,
+    # anything in between = mini-batch
+    batch_size: int = 32
+    hidden_layers: list[int] = field(default_factory=lambda: [16, 16])
+    learning_rate: float = 0.1
+    epochs: int = 50
+
+    # The rng of a run is created from this seed, so the saved config reproduces the run
+    random_seed: int = 0
 
     extra: dict = field(default_factory=dict)  # escape hatch for one-off experiment knobs

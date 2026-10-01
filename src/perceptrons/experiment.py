@@ -13,7 +13,9 @@ from perceptrons.training import train
 from perceptrons.metrics import accuracy, recall, confusion_matrix
 from perceptrons.plots import plot_confusion_matrix, plot_error_convergence
 
-def run_experiment(config, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray, rng: np.random.Generator) -> dict:
+def run_experiment(config, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np.ndarray, Y_valid: np.ndarray) -> dict:
+    # The only source of randomness, so the seed saved in the config reproduces the run
+    rng = np.random.default_rng(config.random_seed)
     Y_train_one_hot = one_hot_encode(Y_train, config.n_classes)
     Y_valid_one_hot = one_hot_encode(Y_valid, config.n_classes)
     
@@ -29,8 +31,8 @@ def run_experiment(config, X_train: np.ndarray, Y_train: np.ndarray, X_valid: np
     
     plot_error_convergence(training_error, validation_error, Path("results/error_convergence.png"), "Error Convergence of Digits")
     
-    Y_pred_one_hot = one_hot_decode(model.forward(X_valid))
-    cm = confusion_matrix(Y_valid_one_hot, Y_pred_one_hot, config.n_classes)
+    Y_pred = one_hot_decode(model.forward(X_valid))  # labels, not one-hot
+    cm = confusion_matrix(Y_valid, Y_pred, config.n_classes)  # compares labels with labels
     acc = accuracy(cm)
     print("{} accuracy: {:.3f}".format("Validation", acc))
     plot_confusion_matrix(cm, Path("results/confusion_matrix_digits.png"), "Confusion Matrix of Digits")
