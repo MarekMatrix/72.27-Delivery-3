@@ -17,12 +17,18 @@ class ActivationMethod(str, Enum):
     Sigmoid = "sigmoid"
     Tangent = "tangent"
 
+class Dataset(str, Enum):
+    Digits = "digits"
+    MoreDigits = "more_digits"
+
+
 
 @dataclass
 class Config:
     # Problem parameters (not hyperparameters)
     n_classes: int = 10
     n_features: int = 784
+    dataset: Dataset = Dataset.Digits
 
     # Hyperparameters
     optimizer_method: OptimizerMethod = OptimizerMethod.GradientDescent
