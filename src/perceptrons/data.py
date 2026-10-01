@@ -11,32 +11,33 @@ import numpy as np
 import ast
 
 
-# Importing all training data: 
 digits_path = Path(__file__).parent.parent.parent / "data" / "digits.csv"
-digits = pd.read_csv(digits_path)
-
-m, n = digits.shape
-split_index = int(len(digits) * 0.8)
-
-Y = digits["label"].to_numpy()
-X = np.array(
-    digits["image"].apply(ast.literal_eval).tolist()
-)
-
-# Split training and validation data
-Y_train = Y[:split_index]
-X_train = X[:split_index].T
-
-Y_valid = Y[split_index:]
-X_valid = X[split_index:].T
-
-
-# Importing all test data:
 digits_test_path = Path(__file__).parent.parent.parent / "data" / "digits_test.csv"
-digits_test = pd.read_csv(digits_test_path)
 
-Y_test = digits_test["label"].to_numpy()
+def load_digits(path: Path) -> list[np.ndarray]:
+    digits = pd.read_csv(path)
+    Y = digits["label"].to_numpy()
+    X = np.array(digits["image"].apply(ast.literal_eval).tolist()).T
+    return X, Y
 
-X_test = np.array(
-    digits_test["image"].apply(ast.literal_eval).tolist()
-).T
+def split_train_and_validation(X: np.ndarray, Y: np.ndarray) -> list[np.ndarray]:
+    split_index = int(X.shape[1] * 0.8)
+
+    X_train = X[:, :split_index]
+    Y_train = Y[:split_index]
+
+    X_valid = X[:, split_index:]
+    Y_valid = Y[split_index:]
+
+    return X_train, X_valid, Y_train, Y_valid
+
+def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
+    # n_classes is explicit: inferring it from Y.max() + 1 gives fewer rows when the
+    # highest class happens to be missing from Y (e.g. a small batch or subset)
+    one_hot_Y = np.zeros((Y.size, n_classes))
+    one_hot_Y[np.arange(Y.size), Y] = 1
+    one_hot_Y = one_hot_Y.T
+    return one_hot_Y
+
+def one_hot_decode(O: np.ndarray) -> np.ndarray:
+    return O.argmax(axis=0)

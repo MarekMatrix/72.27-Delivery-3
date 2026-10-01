@@ -1,10 +1,5 @@
 """Training loop: epochs, shuffling, and batching, driving the model, loss, and optimizer."""
 
-# TODO: batch size as a hyperparameter, covering online, mini-batch, and full-batch updates
-# TODO: hand per-epoch loss and timing to experiment.py for recording
-
-"""Training loop: epochs, shuffling, and batching, driving the model, loss, and optimizer."""
-
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 import time
@@ -13,10 +8,12 @@ import numpy as np
 
 # Assumed interfaces (not defined here):
 #   model.forward(X) -> output           caches whatever backward() needs
-#   model.backward(dE_dO) -> list[grads]  same order as model.params
+#   model.backward(dE_dO) -> list[delta]  one delta (dE/dZ) per layer
+#   model.weight_gradients(delta) -> list[grads]  same order as model.params,
+#                                         divided by the batch size
 #   model.params -> list[np.ndarray]      the arrays the optimizer updates in place
 #   loss.value(Y_pred, Y_true) -> float
-#   loss.gradient(Y_pred, Y_true) -> np.ndarray   dE/dO, same shape as Y_pred
+#   loss.gradient(Y_pred, Y_true) -> np.ndarray   per-sample dE/dO (no 1/n), same shape as Y_pred
 #   optimizer.step(params, grads)         see optimizers.py
 #
 # Convention: samples are COLUMNS, X has shape (n_features, n_samples), as in data.py.
@@ -28,7 +25,6 @@ class History:
     train_loss: list[float] = field(default_factory=list)
     valid_loss: list[float] = field(default_factory=list)
     epoch_seconds: list[float] = field(default_factory=list)
-    # TODO: anything else you want per epoch (e.g. accuracy), or a stop reason
 
 
 def iterate_minibatches(
@@ -40,13 +36,18 @@ def iterate_minibatches(
     """Yield (X_batch, Y_batch) pairs covering every sample exactly once, in a random order.
 
     batch_size = 1 is online, 1 < batch_size < n_samples is mini-batch,
-    batch_size >= n_samples is full batch.
+    batch_size >= n_samples is full batch. The last batch may be smaller; it is kept
+    so that every sample is seen once per epoch.
     """
-    # TODO: validate batch_size (what should 0 or a negative value do?)
-    # TODO: draw a random permutation of the sample indices using rng
-    # TODO: walk through the permutation in steps of batch_size
-    # TODO: slice X and Y along the SAMPLE axis with those indices and yield them
-    # TODO: decide what happens to the last, smaller batch (keep it or drop it) and be able to justify it
+    if batch_size < 1:
+        raise ValueError(f"batch_size must be >= 1, got {batch_size}")
+
+    n_samples = X.shape[1]
+    order = rng.permutation(n_samples)
+
+    for start in range(0, n_samples, batch_size):
+        idx = order[start:start + batch_size]
+        yield X[:, idx], Y[..., idx]
 
 
 def train_epoch(
@@ -58,20 +59,29 @@ def train_epoch(
     batch_size: int,
     rng: np.random.Generator,
 ) -> float:
-    """Run one pass over the data, one optimizer step per batch. Return the epoch's training loss."""
-    # TODO: for each batch from iterate_minibatches:
-    #   TODO: forward pass
-    #   TODO: loss value for this batch (for reporting)
-    #   TODO: dE/dO from the loss
-    #   TODO: backward pass -> grads
-    #   TODO: optimizer.step(model.params, grads)
-    # TODO: combine the per-batch losses into one epoch number (plain mean, or weighted by batch size?)
+    """Run one pass over the data, one optimizer step per batch. Return the epoch's training loss.
+
+    The epoch loss is the mean of the batch losses, weighted by batch size, so a small
+    last batch does not count as much as a full one.
+    """
+    total_loss = 0.0
+    n_seen = 0
+
+    for X_batch, Y_batch in iterate_minibatches(X, Y, batch_size, rng):
+        output = model.forward(X_batch)
+        grads = model.weight_gradients(model.backward(loss.gradient(output, Y_batch)))
+        optimizer.step(model.params, grads)
+
+        n = X_batch.shape[1]
+        total_loss += loss.value(output, Y_batch) * n
+        n_seen += n
+
+    return total_loss / n_seen
 
 
 def evaluate_loss(model, loss, X: np.ndarray, Y: np.ndarray) -> float:
     """Loss of the current model on (X, Y), with no weight updates."""
-    # TODO: forward pass on the whole set
-    # TODO: return the loss value
+    return loss.value(model.forward(X), Y)
 
 
 def train(
@@ -90,15 +100,25 @@ def train(
 ) -> History:
     """Train for up to `epochs` epochs and return the per-epoch history.
 
+    Stops early once the training loss drops below target_loss (if given).
     on_epoch is called after every epoch so experiment.py can report progress;
     this module never prints or plots.
     """
-    # TODO: create an empty History
-    # TODO: for each epoch:
-    #   TODO: start a timer
-    #   TODO: train_epoch -> training loss
-    #   TODO: stop the timer; record loss and time
-    #   TODO: if validation data was given, record the validation loss
-    #   TODO: call on_epoch if given
-    #   TODO: stop early if target_loss is set and reached (on which loss: train or valid?)
-    # TODO: return the history
+    history = History()
+
+    for epoch in range(epochs):
+        start = time.perf_counter()
+        train_loss = train_epoch(model, loss, optimizer, X_train, Y_train, batch_size, rng)
+        history.epoch_seconds.append(time.perf_counter() - start)
+        history.train_loss.append(train_loss)
+
+        if X_valid is not None and Y_valid is not None:
+            history.valid_loss.append(evaluate_loss(model, loss, X_valid, Y_valid))
+
+        if on_epoch is not None:
+            on_epoch(epoch, history)
+
+        if target_loss is not None and train_loss < target_loss:
+            break
+
+    return history
