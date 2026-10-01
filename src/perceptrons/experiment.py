@@ -61,7 +61,6 @@ def run_experiment(config: Config, X_train: np.ndarray, Y_train: np.ndarray, X_v
     Y_pred = one_hot_decode(model.forward(X_valid))  # labels, not one-hot
     cm = confusion_matrix(Y_valid, Y_pred, config.n_classes)  # compares labels with labels
     acc = accuracy(cm)
-    print("{} accuracy: {:.3f}".format("Validation", acc))
 
     return {
         "train_loss": history.train_loss,
