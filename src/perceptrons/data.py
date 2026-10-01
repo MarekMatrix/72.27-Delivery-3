@@ -12,6 +12,7 @@ import ast
 
 
 digits_path = Path(__file__).parent.parent.parent / "data" / "digits.csv"
+more_digits_path = Path(__file__).parent.parent.parent / "data" / "more_digits.csv"
 digits_test_path = Path(__file__).parent.parent.parent / "data" / "digits_test.csv"
 
 def load_digits(path: Path) -> list[np.ndarray]:
@@ -41,3 +42,4 @@ def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
 
 def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
+
