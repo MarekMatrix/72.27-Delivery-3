@@ -112,3 +112,42 @@ def one_hot_encode(Y: np.ndarray, n_classes: int) -> np.ndarray:
 def one_hot_decode(O: np.ndarray) -> np.ndarray:
     return O.argmax(axis=0)
 
+def augment_training(
+    X: np.ndarray,
+    Y: np.ndarray,
+    seed: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Keep original images and add one randomly shifted copy of each."""
+    if X.shape[0] != 784 or X.shape[1] != Y.size:
+        raise ValueError("Expected 784 features and one label per image.")
+
+    rng = np.random.default_rng(seed)
+    images = X.T.reshape(-1, 28, 28)
+    shifted = np.zeros_like(images)
+
+    # Shift by one pixel without wrapping pixels around the image.
+    directions = np.array([
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1],
+    ])
+    choices = rng.integers(0, len(directions), size=Y.size)
+
+    for i, image in enumerate(images):
+        dy, dx = directions[choices[i]]
+
+        source_y = slice(max(0, -dy), min(28, 28 - dy))
+        source_x = slice(max(0, -dx), min(28, 28 - dx))
+        target_y = slice(max(0, dy), min(28, 28 + dy))
+        target_x = slice(max(0, dx), min(28, 28 + dx))
+
+        shifted[i, target_y, target_x] = image[source_y, source_x]
+
+    X_shifted = shifted.reshape(-1, 784).T
+
+    return (
+        np.concatenate([X, X_shifted], axis=1),
+        np.concatenate([Y, Y]),
+    )
+
