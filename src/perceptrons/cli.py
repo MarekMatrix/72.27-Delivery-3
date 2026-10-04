@@ -7,13 +7,11 @@
 # TODO: one command per deliverable: validation, Exercise 1, Exercise 2, Exercise 3
 
 import argparse
-import json
-from dataclasses import asdict
 from pathlib import Path
 
 from perceptrons.config import ActivationMethod, Config, OptimizerMethod
 from perceptrons.data import digits_path, load_digits, split_train_and_validation
-from perceptrons.experiment import run_experiment
+from perceptrons.experiment import run_experiment, save_run
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -64,13 +62,8 @@ def main(argv: list[str] | None = None) -> None:
     X_train, X_valid, Y_train, Y_valid = split_train_and_validation(X, Y)
     result = run_experiment(config, X_train, Y_train, X_valid, Y_valid)
 
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / f"{run_name(config)}.json"
-
-    # default=str turns the enums and any numpy scalars into JSON-friendly values
-    with open(path, "w") as f:
-        json.dump({"config": asdict(config), "result": result}, f, indent=2, default=str)
+    path = Path(args.output_dir) / f"{run_name(config)}.json"
+    save_run(config, result, path)
     print(f"saved {path}")
 
 

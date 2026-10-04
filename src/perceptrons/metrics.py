@@ -12,11 +12,13 @@ def accuracy(cm: np.ndarray) -> float:
 def recall(cm: np.ndarray) -> np.ndarray:
     row_sums = np.sum(cm, axis=1)
 
-    return np.where(
-        row_sums == 0,
-        np.nan,
-        np.diag(cm) / row_sums
-    )
+    # np.where evaluates both branches, so the 0/0 rows still warn without errstate
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(
+            row_sums == 0,
+            np.nan,
+            np.diag(cm) / row_sums
+        )
     
 def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> np.ndarray:
     cm = np.zeros((n_classes, n_classes), dtype=int)

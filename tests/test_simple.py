@@ -6,7 +6,7 @@
 # TODO: step variant fails on XOR, for comparison with the multilayer perceptron
 
 import numpy as np
-from src.perceptrons.simple import simple_step_perceptron, simple_linear_perceptron
+from perceptrons.simple import simple_step_perceptron, simple_linear_perceptron
 
 def test_step_variant_learns_and():
     #AND: x = [[-1, 1], [1, -1], [-1, -1], [1, 1]], y = [-1, -1, -1, 1]
