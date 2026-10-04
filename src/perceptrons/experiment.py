@@ -9,13 +9,14 @@ from pathlib import Path
 
 import numpy as np
 
-from perceptrons.config import ActivationMethod, Config, OptimizerMethod
+from perceptrons.config import ActivationMethod, Config, Dataset, OptimizerMethod
 from perceptrons.data import one_hot_decode, one_hot_encode
 from perceptrons.losses import MSE
 from perceptrons.metrics import accuracy, confusion_matrix, recall
 from perceptrons.multilayer import MLP
 from perceptrons.optimizers import Adam, GradientDescent, Momentum
 from perceptrons.training import History, train
+
 
 # Name in the config -> optimizer class. A new optimizer is built for every run:
 # Momentum and Adam keep state between steps, which must not carry over to the next run.
@@ -46,6 +47,7 @@ def run_experiment(
     X_test: np.ndarray | None = None,
     Y_test: np.ndarray | None = None,
     verbose: bool = True,
+    model_path: Path | None = None,
 ) -> dict:
     """Train one model from `config`, evaluate it on the validation split, return what to save.
 
@@ -86,6 +88,23 @@ def run_experiment(
     valid = evaluate(model, X_valid, Y_valid, config.n_classes)
     if verbose:
         print(f"validation accuracy: {valid['accuracy']:.3f}")
+    if model_path is not None:
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+
+        arrays = {
+            f"W_{i}": weights
+            for i, weights in enumerate(model.W)
+        }
+        arrays.update({
+            f"b_{i}": bias
+            for i, bias in enumerate(model.b)
+        })
+        arrays["config_json"] = np.array(
+            json.dumps(asdict(config), default=str)
+        )
+
+        np.savez_compressed(model_path, **arrays)
+        print(f"saved model {model_path}")
 
     result = {
         "train_loss": history.train_loss,
@@ -115,4 +134,32 @@ def load_run(path: Path) -> tuple[Config, dict]:
     config = Config(**record["config"])
     config.optimizer_method = OptimizerMethod(config.optimizer_method)
     config.activation_method = ActivationMethod(config.activation_method)
+    config.dataset = Dataset(config.dataset)
     return config, record["result"]
+
+
+def load_model(model_path: Path) -> tuple[MLP, Config]:
+    """Load saved weights and configuration for prediction."""
+    with np.load(model_path, allow_pickle=False) as saved:
+        config_data = json.loads(saved["config_json"].item())
+        config_data["optimizer_method"] = OptimizerMethod(
+            config_data["optimizer_method"]
+        )
+        config_data["activation_method"] = ActivationMethod(
+            config_data["activation_method"]
+        )
+        config = Config(**config_data)
+
+        layers = [config.n_features] + config.hidden_layers + [config.n_classes]
+        model = MLP(
+            layers,
+            config.activation_method,
+            config.activation_parameter,
+            np.random.default_rng(config.random_seed),
+        )
+
+        for i in range(len(model.W)):
+            model.W[i][...] = saved[f"W_{i}"]
+            model.b[i][...] = saved[f"b_{i}"]
+
+    return model, config
