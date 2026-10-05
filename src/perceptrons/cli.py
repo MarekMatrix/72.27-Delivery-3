@@ -20,6 +20,7 @@ from perceptrons.data import (
     split_train_and_validation_stratified,
     oversample_training,
     add_unique_training_samples,
+    augment_training,
 )
 from perceptrons.experiment import run_experiment
 
@@ -108,6 +109,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--oversample", action="store_true")
     parser.add_argument("--extra-dataset", type=Path, default=None)
     parser.add_argument("--save-model", action="store_true")
+    parser.add_argument(
+        "--augment",
+        action="store_true",
+        help="Add randomly shifted copies of training images.",
+    )
     return parser
 
 
@@ -159,6 +165,7 @@ def main(argv: list[str] | None = None) -> None:
     config.extra["dataset"] = str(dataset_path)
     config.extra["split"] = args.split
     config.extra["oversample"] = args.oversample
+    config.extra["augment"] = args.augment
     config.extra["extra_dataset"] = (
         str(args.extra_dataset)
         if args.extra_dataset is not None
@@ -190,6 +197,11 @@ def main(argv: list[str] | None = None) -> None:
         )
 
     output_dir = Path(args.output_dir)
+    if args.augment:
+        X_train, Y_train = augment_training(
+            X_train, Y_train, seed=args.seed
+        )
+        print(f"Training samples after augmentation: {Y_train.size}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model_path = (
