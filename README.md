@@ -24,6 +24,9 @@ uv run python -m perceptrons.cli --learning-rate 1.0 --activation-parameter 1 \
 
 Use `--help` to see the other options (dataset, optimizer, activation, split, augmentation, saving the model). Each run is saved as a json file in `results/`.
 
+Excercise 1: 
+Run the file src/perceptron/simple.py
+
 Exercise 2:
 
 ```
