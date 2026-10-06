@@ -10,9 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
+
 DATA_PATH = Path(__file__).parent.parent.parent / "data" / "fraud_dataset.csv"
 TARGET = "big_model_fraud_probability"
 GROUND_TRUTH = "flagged_fraud"          # never used for training
@@ -24,9 +22,7 @@ ALPHA_SIGMOID = 0.5
 SEED = 42
 
 
-# ---------------------------------------------------------------------------
-# Activation functions
-# ---------------------------------------------------------------------------
+
 def sigmoid(h):
     return 1.0 / (1.0 + np.exp(-h))
 
@@ -36,9 +32,7 @@ def sigmoid_prime(h):
     return s * (1.0 - s)
 
 
-# ---------------------------------------------------------------------------
-# Preprocessing
-# ---------------------------------------------------------------------------
+
 def standardize(x, mean=None, std=None):
     """Scale every column to mean 0 and std 1. Pass mean/std to reuse a fit."""
     if mean is None:
@@ -63,9 +57,7 @@ def load_fraud_data():
     return x_raw, y, flagged, feature_cols
 
 
-# ---------------------------------------------------------------------------
-# Perceptrons
-# ---------------------------------------------------------------------------
+
 def simple_step_perceptron(x, y, bound=1000, alpha=0.1, seed=SEED):
     """Rosenblatt rule with sign activation (for the AND validation)."""
     rng = np.random.default_rng(seed)
@@ -117,9 +109,7 @@ def simple_nonlinear_perceptron(x, y, alpha=ALPHA_SIGMOID, epochs=EPOCHS,
     return w, history
 
 
-# ---------------------------------------------------------------------------
-# Validation (quick sanity checks, not part of the deliverable)
-# ---------------------------------------------------------------------------
+
 def run_validation():
     print("=== Validation ===")
     # AND with the step perceptron
@@ -140,9 +130,7 @@ def run_validation():
     print(f"tanh non-linear        -> MSE: {hist[-1]:.6f}\n")
 
 
-# ---------------------------------------------------------------------------
-# Exercise 1, part 1: learning comparison on ALL samples
-# ---------------------------------------------------------------------------
+
 def main():
     run_validation()
 
