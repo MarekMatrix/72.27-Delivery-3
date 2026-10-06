@@ -10,7 +10,6 @@ You need [uv](https://docs.astral.sh/uv/).
 
 ```
 make install
-make test
 ```
 
 ## Running
@@ -24,14 +23,16 @@ uv run python -m perceptrons.cli --learning-rate 1.0 --activation-parameter 1 \
 
 Use `--help` to see the other options (dataset, optimizer, activation, split, augmentation, saving the model). Each run is saved as a json file in `results/`.
 
-Excercise 1: 
+Exercise 1:
+
 ```
-uv run python -m perceptron.simple
+uv run python src_ex1/perceptron_exercise1/simple.py
 ```
+
 Exercise 2:
 
 ```
-uv run python -m perceptrons.sweep           # hyperparameter search on digits.csv
+uv run python -m perceptrons.sweep           # train the final configuration on digits.csv (seeds 0, 1, 2)
 uv run python -m perceptrons.evaluate_test   # final model on digits_test.csv
 ```
 
@@ -39,14 +40,15 @@ The results are analysed in the notebooks in `notebooks/`.
 
 ## Code
 
+The multilayer perceptron is in `src/perceptrons/`:
+
 - `activations.py`, `losses.py`: sigmoid and tanh with their derivatives, mean squared error
-- `simple.py`: simple perceptron (step and linear)
 - `multilayer.py`: multilayer perceptron, forward and backward pass with matrices
 - `optimizers.py`: gradient descent, momentum and Adam
 - `training.py`: training loop with epochs, shuffling and mini-batches
-- `data.py`: loading the csv files, splitting, one-hot encoding
+- `data.py`: loading the csv files, splitting, one-hot encoding, oversampling and augmentation
 - `metrics.py`: accuracy, recall and confusion matrix
 - `config.py`, `experiment.py`, `cli.py`: configuration, running and saving experiments
-- `plots.py`: figures
+- `sweep.py`, `evaluate_test.py`: exercise 2 training runs and final evaluation on `digits_test.csv`
 
-Tests are in `tests/`. The datasets are in `data/`.
+Exercise 1 is in `src_ex1/perceptron_exercise1/simple.py` (step, linear and non-linear simple perceptrons). The datasets are in `data/`.

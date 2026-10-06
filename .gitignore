@@ -30,7 +30,6 @@ results/*
 .vscode/
 .idea/
 
-# Test / tooling caches
-.pytest_cache/
+# Tooling caches
 .mypy_cache/
 .ruff_cache/
