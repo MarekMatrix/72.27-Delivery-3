@@ -1,6 +1,6 @@
 """Exercise 2: evaluate the final configuration ONCE on digits_test.csv ("production").
 
-Run this only after model selection is finished: nothing measured here may be used to
+Ran after model selection is finished: nothing measured here is used to
 change the configuration. It loads the models that sweep.py saved for each seed of
 FINAL_CONFIG; it does not train anything.
 

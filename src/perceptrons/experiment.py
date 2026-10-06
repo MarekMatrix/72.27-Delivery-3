@@ -1,7 +1,5 @@
 """Runs a configured experiment and records it under results/. Never plots."""
 
-# TODO: save a trained model with its config, and load it back to resume training
-
 import time
 
 import numpy as np

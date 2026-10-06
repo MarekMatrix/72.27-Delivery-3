@@ -4,8 +4,6 @@
         --hidden-layers 64 --epochs 50 --batch-size 32
 """
 
-# TODO: one command per deliverable: validation, Exercise 1, Exercise 2, Exercise 3
-
 import argparse
 import json
 from dataclasses import asdict

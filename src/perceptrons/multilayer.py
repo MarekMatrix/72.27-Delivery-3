@@ -1,17 +1,7 @@
 """Multilayer perceptron with a configurable architecture, e.g. [2, 3, 2, 1]."""
 
-# TODO: must learn XOR with [2, 2, 1] and [2, 3, 2, 1] (validation)
-# TODO: forward and backward passes as matrix operations, not per-neuron loops
-# TODO: 10-class digit classification (Exercises 2 and 3)
-
-# starting making the perceptron multilayer with layer 0 being all inputs of the digits, 
-# layer 1 being og 16 perceptrons and layer 2 as well, end layer will be of 10 perceptrons,
-# one for each number
-
 import numpy as np
 from perceptrons.activations import activation_functions
-
-# Different types of gradient decent updating of weights should be explored (online, mini-batch, batch)
 
 class MLP: 
     def __init__(self, layers: list[int], function: str, beta: float, rng: np.random.Generator) -> None: 
@@ -48,8 +38,6 @@ class MLP:
         return delta
     
     def weight_gradients(self, delta: list[np.ndarray]) -> list[np.ndarray]:
-        # Read from the batch forward() cached (samples are columns), not stored once:
-        # the last mini-batch of an epoch can be smaller than the others
         batch_size = self.A[0].shape[1]
         grad_W = []
         grad_b = []
@@ -58,5 +46,3 @@ class MLP:
             grad_b.append(delta[i].sum(axis=1, keepdims=True) / batch_size)
         grads = grad_W + grad_b
         return grads
-
-        
