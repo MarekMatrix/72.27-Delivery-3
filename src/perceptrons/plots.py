@@ -62,8 +62,3 @@ def plot_error_convergence(training_error: list[float], validation_error: list[f
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
-    
-# Testing plotting of numbers
-#image = X_train[:, 0].reshape((28, 28))
-#plt.imshow(image, cmap="gray")
-#plt.show()

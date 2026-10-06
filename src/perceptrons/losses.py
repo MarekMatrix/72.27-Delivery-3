@@ -1,7 +1,5 @@
 """Loss functions and their gradients with respect to the network output."""
 
-# TODO: the loss for Exercise 1 (output is a probability)
-
 import numpy as np
 
 
